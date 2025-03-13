@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="./css-files/login-css/login.css"> <!-- css file loc -->
   <script type="module" src="./js-filse/login-js/firebase-db.js"></script>
   <script type="module" src="./js-filse/login-js/loading.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pica/dist/pica.min.js"></script>
 </head>
 <body>
       <!-- header -->
@@ -185,25 +187,34 @@
               ">Continue</button>
             </div>
             <div class="part2" id="part2sinup">
+              <h2 style="margin-left: 15%;">Upload Glasses Prescription</h2>
+              <div style="margin-left: 15%; display: flex;">
+              <label for="imageUpload" class="upload-btn">Choose File</label>
+              <input type="file" id="imageUpload" accept="image/*">
+              <p id="loading" style="margin-left: 20px;">Loading...</p>
+              </div>
+              <p id="output" style="margin-left: 15%; max-width: 70%; font-size: 90%;">Extracted text will appear here</p>
+            
               <div class="eyeline-1">
-                  <div class="eyeblock1"><h4 class="aeyeText">AEYE</h4></div>
-                  <div class="eyeblock2"><h4 class="aeyeText">Sphere</h4></div>
-                  <div class="eyeblock2"><h4 class="aeyeText">Cylinder</h4></div>
-                  <div class="eyeblock2"><h4 class="aeyeText">Axis</h4></div>
+                <div class="eyeblock1"><h4 class="aeyeText">AEYE</h4></div>
+                <div class="eyeblock2"><h4 class="aeyeText">Sphere</h4></div>
+                <div class="eyeblock2"><h4 class="aeyeText">Cylinder</h4></div>
+                <div class="eyeblock2"><h4 class="aeyeText">Axis</h4></div>
               </div>
               <div class="eyeline-2">
-                  <div class="eyeblock1"><h4 class="aeyeText">Right (OD)</h4></div>
-                  <div class="eyeblock3"><input id="odSp" type="text" class="inputeyefildes" placeholder="+2.50"></div>
-                  <div class="eyeblock3"><input id="odCy" type="text" class="inputeyefildes" placeholder="-1.50"></div>
-                  <div class="eyeblock3"><input id="odAx" type="text" class="inputeyefildes" placeholder="70"></div>
+                <div class="eyeblock1"><h4 class="aeyeText">Right (OD)</h4></div>
+                <div class="eyeblock3"><input id="odSp" type="text" class="inputeyefildes" placeholder="+2.50"></div>
+                <div class="eyeblock3"><input id="odCy" type="text" class="inputeyefildes" placeholder="-1.50"></div>
+                <div class="eyeblock3"><input id="odAx" type="text" class="inputeyefildes" placeholder="70"></div>
               </div>
               <div class="eyeline-3">
-                  <div class="eyeblock1"><h4 class="aeyeText">Left (OS)</h4></div>
-                  <div class="eyeblock3"><input id="osSp" type="text" class="inputeyefildes" placeholder="-2.50"></div>
-                  <div class="eyeblock3"><input id="osCy" type="text" class="inputeyefildes" placeholder="+3.50"></div>
-                  <div class="eyeblock3"><input id="osAx" type="text" class="inputeyefildes" placeholder="80"></div>
+                <div class="eyeblock1"><h4 class="aeyeText">Left (OS)</h4></div>
+                <div class="eyeblock3"><input id="osSp" type="text" class="inputeyefildes" placeholder="-2.50"></div>
+                <div class="eyeblock3"><input id="osCy" type="text" class="inputeyefildes" placeholder="+3.50"></div>
+                <div class="eyeblock3"><input id="osAx" type="text" class="inputeyefildes" placeholder="80"></div>
               </div>
-              <p id="errorMessage" style="text-align: left; margin-bottom: 0px; margin-left: 17%; width: 70%; color: red;">Please fill in all fields, and if you wanna skip, add all 0</p>
+              <progress id="progressBar" value="0" max="100" style="margin-left: 15%; width: 70%; margin-top: 0;"></progress>
+              <p id="errorMessage" style="text-align: left; margin-bottom: 5px; margin-left: 17%; width: 70%; color: red; margin-top: 5px;">Please fill in all fields, and if you wanna skip, add all 0</p>
               <button class="login-button widthbut" onclick="validateFields()">Continue</button>
               <script>
                   function validateFields() {
