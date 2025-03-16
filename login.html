@@ -244,129 +244,140 @@
                 <button id="captureButton" onclick="captureImage()">Capture</button>
               </div>
             </div>
+            <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
             <script>
-              let cameraStream = null;
-              let currentCamera = 'environment'; // الكاميرا الافتراضية (الخلفية)
+              await worker.loadLanguage('ara');
+              await worker.initialize('ara');
+let cameraStream = null;
+let currentCamera = 'environment'; // الكاميرا الافتراضية (الخلفية)
 
-              // فتح النافذة المنبثقة للكاميرا
-              function openCameraPopup(mode) {
-                const popup = document.getElementById('cameraPopup');
-                popup.style.display = 'flex';
-                openCamera();
+// فتح النافذة المنبثقة للكاميرا
+function openCameraPopup(mode) {
+  const popup = document.getElementById('cameraPopup');
+  popup.style.display = 'flex';
+  openCamera();
 
-                if (mode === 'scan') {
-                  setTimeout(() => {
-                    captureImage();
-                  }, 3000); // يلتقط الصورة تلقائيًا بعد 3 ثواني
-                }
-              }
+  if (mode === 'scan') {
+    setTimeout(() => {
+      captureImage();
+    }, 3000); // يلتقط الصورة تلقائيًا بعد 3 ثواني
+  }
+}
 
-              // إغلاق النافذة المنبثقة
-              function closeCameraPopup() {
-                const popup = document.getElementById('cameraPopup');
-                popup.style.display = 'none';
-                stopCamera();
-              }
+// إغلاق النافذة المنبثقة
+function closeCameraPopup() {
+  const popup = document.getElementById('cameraPopup');
+  popup.style.display = 'none';
+  stopCamera();
+}
 
-              // فتح الكاميرا
-              async function openCamera() {
-                try {
-                  const video = document.getElementById('cameraPreview');
-                  const constraints = {
-                    video: { facingMode: currentCamera }
-                  };
-                  cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-                  video.srcObject = cameraStream;
-                } catch (error) {
-                  console.error('Error opening camera:', error);
-                  alert('Failed to open camera. Please allow camera access.');
-                }
-              }
+// فتح الكاميرا
+async function openCamera() {
+  try {
+    const video = document.getElementById('cameraPreview');
+    const constraints = {
+      video: { facingMode: currentCamera }
+    };
+    cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = cameraStream;
+  } catch (error) {
+    console.error('Error opening camera:', error);
+    alert('Failed to open camera. Please allow camera access.');
+  }
+}
 
-              // التبديل بين الكاميرا الأمامية والخلفية
-              async function switchCamera() {
-                const select = document.getElementById('cameraSelect');
-                currentCamera = select.value;
-                stopCamera();
-                await openCamera();
-              }
+// التبديل بين الكاميرا الأمامية والخلفية
+async function switchCamera() {
+  const select = document.getElementById('cameraSelect');
+  currentCamera = select.value;
+  stopCamera();
+  await openCamera();
+}
 
-              // التقاط صورة من الكاميرا
-              function captureImage() {
-                const video = document.getElementById('cameraPreview');
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const context = canvas.getContext('2d');
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const image = canvas.toDataURL('image/png');
-                handleImageUpload({ target: { files: [dataURLtoFile(image, 'capture.png')] } });
-                closeCameraPopup();
-              }
+// التقاط صورة من الكاميرا
+function captureImage() {
+  const video = document.getElementById('cameraPreview');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const context = canvas.getContext('2d');
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const image = canvas.toDataURL('image/png');
+  handleImageUpload({ target: { files: [dataURLtoFile(image, 'capture.png')] } });
+  closeCameraPopup();
+}
 
-              // إيقاف الكاميرا
-              function stopCamera() {
-                if (cameraStream) {
-                  cameraStream.getTracks().forEach(track => track.stop());
-                }
-              }
+// إيقاف الكاميرا
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+  }
+}
 
-              // تحويل Data URL إلى File
-              function dataURLtoFile(dataURL, filename) {
-                const arr = dataURL.split(',');
-                const mime = arr[0].match(/:(.*?);/)[1];
-                const bstr = atob(arr[1]);
-                let n = bstr.length;
-                const u8arr = new Uint8Array(n);
-                while (n--) {
-                  u8arr[n] = bstr.charCodeAt(n);
-                }
-                return new File([u8arr], filename, { type: mime });
-              }
+// تحويل Data URL إلى File
+function dataURLtoFile(dataURL, filename) {
+  const arr = dataURL.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, { type: mime });
+}
 
-              // معالجة الصورة واستخراج النص
-              async function handleImageUpload(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+// معالجة الصورة واستخراج النص
+async function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) {
+    document.getElementById('output').innerText = 'No file selected.';
+    return;
+  }
 
-                document.getElementById('loading').style.display = 'block';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('output').innerText = '';
 
-                const { createWorker } = Tesseract;
-                const worker = createWorker();
+  const { createWorker } = Tesseract;
+  const worker = createWorker();
 
-                try {
-                  await worker.load();
-                  await worker.loadLanguage('eng');
-                  await worker.initialize('eng');
-                  const { data: { text } } = await worker.recognize(file);
+  try {
+    await worker.load();
+    await worker.loadLanguage('eng'); // تغيير 'eng' إلى 'ara' للعربية
+    await worker.initialize('eng');
+    const { data: { text } } = await worker.recognize(file);
 
-                  document.getElementById('output').innerText = text;
-                  parsePrescriptionText(text);
-                } catch (error) {
-                  console.error('Error during image processing:', error);
-                  document.getElementById('output').innerText = 'Failed to extract text.';
-                } finally {
-                  await worker.terminate();
-                  document.getElementById('loading').style.display = 'none';
-                }
-              }
+    if (text.trim() === '') {
+      document.getElementById('output').innerText = 'No text found in the image.';
+    } else {
+      document.getElementById('output').innerText = text;
+      parsePrescriptionText(text);
+    }
+  } catch (error) {
+    console.error('Error during image processing:', error);
+    document.getElementById('output').innerText = 'Failed to extract text. Please try again with a clearer image.';
+  } finally {
+    await worker.terminate();
+    document.getElementById('loading').style.display = 'none';
+  }
+}
 
-              // تحليل النص وملء الحقول
-              function parsePrescriptionText(text) {
-                const odSpMatch = text.match(/OD\s*Sphere:\s*([+-]?\d+\.\d+)/);
-                const odCyMatch = text.match(/OD\s*Cylinder:\s*([+-]?\d+\.\d+)/);
-                const odAxMatch = text.match(/OD\s*Axis:\s*(\d+)/);
-                const osSpMatch = text.match(/OS\s*Sphere:\s*([+-]?\d+\.\d+)/);
-                const osCyMatch = text.match(/OS\s*Cylinder:\s*([+-]?\d+\.\d+)/);
-                const osAxMatch = text.match(/OS\s*Axis:\s*(\d+)/);
+// تحليل النص وملء الحقول
+function parsePrescriptionText(text) {
+  const odSpMatch = text.match(/OD\s*Sphere:\s*([+-]?\d+\.\d+)/);
+  const odCyMatch = text.match(/OD\s*Cylinder:\s*([+-]?\d+\.\d+)/);
+  const odAxMatch = text.match(/OD\s*Axis:\s*(\d+)/);
+  const osSpMatch = text.match(/OS\s*Sphere:\s*([+-]?\d+\.\d+)/);
+  const osCyMatch = text.match(/OS\s*Cylinder:\s*([+-]?\d+\.\d+)/);
+  const osAxMatch = text.match(/OS\s*Axis:\s*(\d+)/);
 
-                if (odSpMatch) document.getElementById('odSp').value = odSpMatch[1];
-                if (odCyMatch) document.getElementById('odCy').value = odCyMatch[1];
-                if (odAxMatch) document.getElementById('odAx').value = odAxMatch[1];
-                if (osSpMatch) document.getElementById('osSp').value = osSpMatch[1];
-                if (osCyMatch) document.getElementById('osCy').value = osCyMatch[1];
-                if (osAxMatch) document.getElementById('osAx').value = osAxMatch[1];
-              }
+  if (odSpMatch) document.getElementById('odSp').value = odSpMatch[1];
+  if (odCyMatch) document.getElementById('odCy').value = odCyMatch[1];
+  if (odAxMatch) document.getElementById('odAx').value = odAxMatch[1];
+  if (osSpMatch) document.getElementById('osSp').value = osSpMatch[1];
+  if (osCyMatch) document.getElementById('osCy').value = osCyMatch[1];
+  if (osAxMatch) document.getElementById('osAx').value = osAxMatch[1];
+}
             </script>
             </div>
             <div class="part3" id="part3sinup">
