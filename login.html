@@ -194,17 +194,17 @@
                   <label for="imageUpload" class="upload-btn">Upload Image</label>
                   <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)">
                 </div>
-            
+          
                 <!-- الخيار 2: فتح الكاميرا والالتقاط -->
                 <div style="display: flex; align-items: center; margin-bottom: 10px;">
                   <button class="upload-btn" onclick="openCameraPopup('capture')">Open Camera & Capture</button>
                 </div>
-            
+          
                 <!-- الخيار 3: فتح الكاميرا والمسح التلقائي -->
                 <div style="display: flex; align-items: center;">
                   <button class="upload-btn" onclick="openCameraPopup('scan')">Open Camera & Auto Scan</button>
                 </div>
-            
+          
                 <p id="loading" style="margin-left: 20px; display: none;">Loading...</p>
               </div>
               <p id="output" style="margin-left: 15%; max-width: 70%; font-size: 90%;">Extracted text will appear here</p>
@@ -230,7 +230,7 @@
               <p id="errorMessage" style="text-align: left; margin-bottom: 5px; margin-left: 17%; width: 70%; color: red; margin-top: 5px;">Please fill in all fields, and if you wanna skip, add all 0</p>
               <button class="login-button widthbut" onclick="validateFields()">Continue</button>
             </div>
-            
+          
             <!-- نافذة الكاميرا المنبثقة -->
             <div id="cameraPopup" class="popup">
               <div class="popup-content">
@@ -244,10 +244,7 @@
                 <button id="captureButton" onclick="captureImage()">Capture</button>
               </div>
             </div>
-            <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
             <script>
-              await worker.loadLanguage('ara');
-              await worker.initialize('ara');
 let cameraStream = null;
 let currentCamera = 'environment'; // الكاميرا الافتراضية (الخلفية)
 
