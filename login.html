@@ -273,7 +273,12 @@ async function openCamera() {
   try {
     const video = document.getElementById('cameraPreview');
     const constraints = {
-      video: { facingMode: currentCamera }
+      video: {
+        facingMode: currentCamera,
+        focusMode: 'continuous', // تفعيل الفوكس التلقائي
+        width: { ideal: 1280 }, // زيادة دقة الصورة
+        height: { ideal: 720 }
+      }
     };
     cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
     video.srcObject = cameraStream;
@@ -299,9 +304,53 @@ function captureImage() {
   canvas.height = video.videoHeight;
   const context = canvas.getContext('2d');
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const image = canvas.toDataURL('image/png');
-  handleImageUpload({ target: { files: [dataURLtoFile(image, 'capture.png')] } });
+
+  // تحسين جودة الصورة
+  const image = canvas.toDataURL('image/jpeg', 0.9); // جودة 90%
+
+  handleImageUpload({ target: { files: [dataURLtoFile(image, 'capture.jpg')] } });
   closeCameraPopup();
+}
+
+async function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) {
+    document.getElementById('output').innerText = 'No file selected.';
+    return;
+  }
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('output').innerText = '';
+
+  // تأخير لمدة 3 ثواني قبل بدء المعالجة
+  await new Promise(resolve => setTimeout(resolve, 3000));
+
+  const { createWorker } = Tesseract;
+  const worker = createWorker();
+
+  try {
+    await worker.load();
+    await worker.loadLanguage('eng'); // تغيير 'eng' إلى 'ara' للعربية
+    await worker.initialize('eng');
+
+    const { data: { text } } = await worker.recognize(file, {
+      tessedit_pageseg_mode: 6, // PSM_SINGLE_BLOCK
+      tessedit_char_whitelist: '0123456789+-.ODOSAxisSphereCylinder',
+    });
+
+    if (text.trim() === '') {
+      document.getElementById('output').innerText = 'No text found in the image.';
+    } else {
+      document.getElementById('output').innerText = text;
+      parsePrescriptionText(text);
+    }
+  } catch (error) {
+    console.error('Error during image processing:', error);
+    document.getElementById('output').innerText = 'Failed to extract text. Please try again with a clearer image.';
+  } finally {
+    await worker.terminate();
+    document.getElementById('loading').style.display = 'none';
+  }
 }
 
 // إيقاف الكاميرا
@@ -342,7 +391,12 @@ async function handleImageUpload(event) {
     await worker.load();
     await worker.loadLanguage('eng'); // تغيير 'eng' إلى 'ara' للعربية
     await worker.initialize('eng');
-    const { data: { text } } = await worker.recognize(file);
+
+    // زيادة دقة الاستخراج باستخدام إعدادات Tesseract
+    const { data: { text } } = await worker.recognize(file, {
+      tessedit_pageseg_mode: 6, // PSM_SINGLE_BLOCK: يعامل الصورة ككتلة نصية واحدة
+      tessedit_char_whitelist: '0123456789+-.ODOSAxisSphereCylinder', // قائمة بالحروف المسموحة
+    });
 
     if (text.trim() === '') {
       document.getElementById('output').innerText = 'No text found in the image.';
@@ -375,65 +429,6 @@ function parsePrescriptionText(text) {
   if (osCyMatch) document.getElementById('osCy').value = osCyMatch[1];
   if (osAxMatch) document.getElementById('osAx').value = osAxMatch[1];
 }
-            </script>
-            </div>
-            <div class="part3" id="part3sinup">
-              <div class="input-laple editess">
-                <p class="inp-text">Phone</p>
-                <div class="input-div-style">
-                  <input id="phoneAccc" type="text" class="input-style" placeholder="01120726090">
-                  <img src="./image/singin/phone-receiver-silhouette.png" alt="" class="input-img">
-                </div>
-              </div>
-              <div class="input-laple editess">
-                <p class="inp-text">Address</p>
-                <div class="input-div-style">
-                  <textarea style="height: 100px; padding-right: 40px;" id="addressAccc" type="text" class="input-style" placeholder="Cairo-Badr - Downtown mall - Building 5 - Apartment 2"></textarea>
-                  <img style="margin-top: 40px;" src="./image/singin/task-list.png" alt="" class="input-img">
-                </div>
-              </div>
-              <p id="errorMessage2" style="margin-top: 80px; text-align: left; margin-bottom: 0px; margin-left: 26%; width: 50%;">Please fill in all fields</p>
-              <button id="conbu" class="login-button widthbut" onclick="createACC()">Continue</button>
-              <button id="createAcc" class="login-button widthbut" style="display: none;">Create Your Account</button>
-              <script>
-                  function createACC() {
-                    var phone = document.getElementById('phoneAccc').value;
-                    var address = document.getElementById('addressAccc').value;
-                    var isValid = true;
-
-                    // Validate phone
-                    var phoneRegex = /^(011|012|015|010)\d{8}$/;
-                    if (!phoneRegex.test(phone)) {
-                        document.getElementById('phoneAccc').style.border = 'red 1px solid';
-                        document.getElementById('errorMessage2').innerText = 'Your Phone is short Please write 11 characters. and It starts with 011, 012, 010, 015';
-                        document.getElementById('errorMessage2').style.color = 'red';
-                        isValid = false;
-                    } else {
-                      document.getElementById('phoneAccc').style.border = 'green 1px solid';
-                      document.getElementById('errorMessage2').innerText = 'Your Name is good';
-                      document.getElementById('errorMessage2').style.color = 'green';
-                    }
-
-                    // Validate address
-                    if (address.length < 6) {
-                        document.getElementById('addressAccc').style.border = 'red 1px solid';
-                        document.getElementById('errorMessage2').innerText = 'Your Location is short Please write at least 6 characters.';
-                        document.getElementById('errorMessage2').style.color = 'red';
-                        isValid = false;
-                    } else {
-                      document.getElementById('addressAccc').style.border = 'green 1px solid';
-                      document.getElementById('errorMessage2').innerText = 'Your Name is good';
-                      document.getElementById('errorMessage2').style.color = 'green';
-                    }
-
-                    
-                    if (isValid) {
-                      localStorage.setItem('phoneSignup', phone);
-                      localStorage.setItem('addressSignup', address);
-                      document.getElementById('conbu').style.display = 'none';
-                      document.getElementById('createAcc').style.display = 'block';
-                    }
-                  }
               </script>
             </div>
 
