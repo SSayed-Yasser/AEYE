@@ -197,17 +197,13 @@
             
                 <!-- الخيار 2: فتح الكاميرا والالتقاط -->
                 <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                  <button class="upload-btn" onclick="openCamera()">Open Camera & Capture</button>
+                  <button class="upload-btn" onclick="openCameraPopup('capture')">Open Camera & Capture</button>
                 </div>
             
                 <!-- الخيار 3: فتح الكاميرا والمسح التلقائي -->
                 <div style="display: flex; align-items: center;">
-                  <button class="upload-btn" onclick="openCameraAndScan()">Open Camera & Auto Scan</button>
+                  <button class="upload-btn" onclick="openCameraPopup('scan')">Open Camera & Auto Scan</button>
                 </div>
-            
-                <!-- عنصر لعرض الكاميرا -->
-                <video id="cameraPreview" autoplay style="display: none; width: 100%; max-width: 300px; margin-top: 10px;"></video>
-                <button id="captureButton" style="display: none; margin-top: 10px;" onclick="captureImage()">Capture</button>
             
                 <p id="loading" style="margin-left: 20px; display: none;">Loading...</p>
               </div>
@@ -235,27 +231,67 @@
               <button class="login-button widthbut" onclick="validateFields()">Continue</button>
             </div>
             
-            <!-- إضافة مكتبة Tesseract.js -->
-            <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
-            
+            <!-- نافذة الكاميرا المنبثقة -->
+            <div id="cameraPopup" class="popup">
+              <div class="popup-content">
+                <span class="close-btn" onclick="closeCameraPopup()">&times;</span>
+                <h3>Select Camera</h3>
+                <select id="cameraSelect" onchange="switchCamera()">
+                  <option value="environment">Back Camera</option>
+                  <option value="user">Front Camera</option>
+                </select>
+                <video id="cameraPreview" autoplay style="width: 100%; max-width: 400px; margin-top: 10px;"></video>
+                <button id="captureButton" onclick="captureImage()">Capture</button>
+              </div>
+            </div>
             <script>
               let cameraStream = null;
-            
-              // دالة لفتح الكاميرا
+              let currentCamera = 'environment'; // الكاميرا الافتراضية (الخلفية)
+
+              // فتح النافذة المنبثقة للكاميرا
+              function openCameraPopup(mode) {
+                const popup = document.getElementById('cameraPopup');
+                popup.style.display = 'flex';
+                openCamera();
+
+                if (mode === 'scan') {
+                  setTimeout(() => {
+                    captureImage();
+                  }, 3000); // يلتقط الصورة تلقائيًا بعد 3 ثواني
+                }
+              }
+
+              // إغلاق النافذة المنبثقة
+              function closeCameraPopup() {
+                const popup = document.getElementById('cameraPopup');
+                popup.style.display = 'none';
+                stopCamera();
+              }
+
+              // فتح الكاميرا
               async function openCamera() {
                 try {
                   const video = document.getElementById('cameraPreview');
-                  video.style.display = 'block';
-                  cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                  const constraints = {
+                    video: { facingMode: currentCamera }
+                  };
+                  cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                   video.srcObject = cameraStream;
-                  document.getElementById('captureButton').style.display = 'block';
                 } catch (error) {
                   console.error('Error opening camera:', error);
                   alert('Failed to open camera. Please allow camera access.');
                 }
               }
-            
-              // دالة لالتقاط صورة من الكاميرا
+
+              // التبديل بين الكاميرا الأمامية والخلفية
+              async function switchCamera() {
+                const select = document.getElementById('cameraSelect');
+                currentCamera = select.value;
+                stopCamera();
+                await openCamera();
+              }
+
+              // التقاط صورة من الكاميرا
               function captureImage() {
                 const video = document.getElementById('cameraPreview');
                 const canvas = document.createElement('canvas');
@@ -265,27 +301,17 @@
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const image = canvas.toDataURL('image/png');
                 handleImageUpload({ target: { files: [dataURLtoFile(image, 'capture.png')] } });
-                stopCamera();
+                closeCameraPopup();
               }
-            
-              // دالة لفتح الكاميرا والمسح التلقائي
-              async function openCameraAndScan() {
-                await openCamera();
-                setTimeout(() => {
-                  captureImage();
-                }, 3000); // يلتقط الصورة تلقائيًا بعد 3 ثواني
-              }
-            
-              // دالة لإيقاف الكاميرا
+
+              // إيقاف الكاميرا
               function stopCamera() {
                 if (cameraStream) {
                   cameraStream.getTracks().forEach(track => track.stop());
-                  document.getElementById('cameraPreview').style.display = 'none';
-                  document.getElementById('captureButton').style.display = 'none';
                 }
               }
-            
-              // دالة لتحويل Data URL إلى File
+
+              // تحويل Data URL إلى File
               function dataURLtoFile(dataURL, filename) {
                 const arr = dataURL.split(',');
                 const mime = arr[0].match(/:(.*?);/)[1];
@@ -297,23 +323,23 @@
                 }
                 return new File([u8arr], filename, { type: mime });
               }
-            
-              // دالة لمعالجة الصورة واستخراج النص
+
+              // معالجة الصورة واستخراج النص
               async function handleImageUpload(event) {
                 const file = event.target.files[0];
                 if (!file) return;
-            
+
                 document.getElementById('loading').style.display = 'block';
-            
+
                 const { createWorker } = Tesseract;
                 const worker = createWorker();
-            
+
                 try {
                   await worker.load();
                   await worker.loadLanguage('eng');
                   await worker.initialize('eng');
                   const { data: { text } } = await worker.recognize(file);
-            
+
                   document.getElementById('output').innerText = text;
                   parsePrescriptionText(text);
                 } catch (error) {
@@ -324,8 +350,8 @@
                   document.getElementById('loading').style.display = 'none';
                 }
               }
-            
-              // دالة لتحليل النص وملء الحقول
+
+              // تحليل النص وملء الحقول
               function parsePrescriptionText(text) {
                 const odSpMatch = text.match(/OD\s*Sphere:\s*([+-]?\d+\.\d+)/);
                 const odCyMatch = text.match(/OD\s*Cylinder:\s*([+-]?\d+\.\d+)/);
@@ -333,59 +359,13 @@
                 const osSpMatch = text.match(/OS\s*Sphere:\s*([+-]?\d+\.\d+)/);
                 const osCyMatch = text.match(/OS\s*Cylinder:\s*([+-]?\d+\.\d+)/);
                 const osAxMatch = text.match(/OS\s*Axis:\s*(\d+)/);
-            
+
                 if (odSpMatch) document.getElementById('odSp').value = odSpMatch[1];
                 if (odCyMatch) document.getElementById('odCy').value = odCyMatch[1];
                 if (odAxMatch) document.getElementById('odAx').value = odAxMatch[1];
                 if (osSpMatch) document.getElementById('osSp').value = osSpMatch[1];
                 if (osCyMatch) document.getElementById('osCy').value = osCyMatch[1];
                 if (osAxMatch) document.getElementById('osAx').value = osAxMatch[1];
-              }
-            
-              // دالة للتحقق من الحقول
-              function validateFields() {
-                const odSp = document.getElementById('odSp').value;
-                const odCy = document.getElementById('odCy').value;
-                const odAx = document.getElementById('odAx').value;
-                const osSp = document.getElementById('osSp').value;
-                const osCy = document.getElementById('osCy').value;
-                const osAx = document.getElementById('osAx').value;
-                let isValid = true;
-            
-                function validateField(value, fieldId, isAxis = false) {
-                  const numericValue = parseFloat(value);
-                  const isEmpty = value.trim() === "";
-                  if (isEmpty || isNaN(numericValue) || numericValue < -500 || numericValue > 500 || (isAxis && (numericValue < 0 || numericValue > 180))) {
-                    document.getElementById(fieldId).style.border = 'red 1px solid';
-                    isValid = false;
-                  } else {
-                    document.getElementById(fieldId).style.border = 'green 1px solid';
-                    isValid = true;
-                  }
-                }
-            
-                validateField(odSp, 'odSp');
-                validateField(odCy, 'odCy');
-                validateField(odAx, 'odAx', true);
-                validateField(osSp, 'osSp');
-                validateField(osCy, 'osCy');
-                validateField(osAx, 'osAx', true);
-            
-                if (!isValid) {
-                  document.getElementById('errorMessage').style.display = 'block';
-                } else {
-                  document.getElementById('errorMessage').style.display = 'none';
-                  console.log("All fields are valid!");
-                  localStorage.setItem('odSp', odSp);
-                  localStorage.setItem('odCy', odCy);
-                  localStorage.setItem('odAx', odAx);
-                  localStorage.setItem('osSp', osSp);
-                  localStorage.setItem('osCy', osCy);
-                  localStorage.setItem('osAx', osAx);
-                  document.getElementById('part1sinup').style.display = 'none';
-                  document.getElementById('part2sinup').style.display = 'none';
-                  document.getElementById('part3sinup').style.display = 'block';
-                }
               }
             </script>
             </div>
