@@ -248,6 +248,14 @@ body {
   justify-content: end;
   align-items: center;
 }
+.phone1 {
+  width: 70%;
+  margin-left: 15%;
+}
+.phone2 {
+  width: 70%;
+  margin-left: 15%;
+}
 
 @media (max-width: 2000px) {
   .right {
@@ -310,7 +318,7 @@ body {
     margin-left: 5%;
   }
   .phone2 {
-    width: 90%;
+    width: 95%;
     margin-left: 5%;
   }
 }
