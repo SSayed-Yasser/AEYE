@@ -187,27 +187,18 @@
               ">Continue</button>
             </div>
             <div class="part2" id="part2sinup">
-              <h2 style="margin-left: 15%;">Upload Glasses Prescription</h2>
-              <div style="margin-left: 15%; display: flex; flex-direction: column;">
-                <!-- الخيار 1: رفع صورة من الجهاز -->
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                  <label for="imageUpload" class="upload-btn">Upload Image</label>
+              <h2 style="margin-left: 15%; margin-top: -20px;">Glasses Prescription</h2>
+              <div class="phone1" style="margin-left: 15%; display: flex; flex-direction: column;">
+                <div style="display: flex; align-items: center; margin-top: -10px; margin-bottom: 5px;">
+                  <label for="imageUpload" class="upload-btn">Upload Img</label>
                   <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)">
+                  <button class="upload-btn" onclick="openCameraPopup('capture')">Capture</button>
+                  <button class="upload-btn" onclick="openCameraPopup('scan')">Auto Scan</button>
                 </div>
-          
-                <!-- الخيار 2: فتح الكاميرا والالتقاط -->
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                  <button class="upload-btn" onclick="openCameraPopup('capture')">Open Camera & Capture</button>
-                </div>
-          
-                <!-- الخيار 3: فتح الكاميرا والمسح التلقائي -->
-                <div style="display: flex; align-items: center;">
-                  <button class="upload-btn" onclick="openCameraPopup('scan')">Open Camera & Auto Scan</button>
-                </div>
-          
                 <p id="loading" style="margin-left: 20px; display: none;">Loading...</p>
               </div>
-              <p id="output" style="margin-left: 15%; max-width: 70%; font-size: 90%;">Extracted text will appear here</p>
+              <p id="output" class="phone2" style="margin-left: 15%; max-width: 70%; font-size: 90%;">Extracted text will appear here</p>
+
               <div class="eyeline-1">
                 <div class="eyeblock1"><h4 class="aeyeText">AEYE</h4></div>
                 <div class="eyeblock2"><h4 class="aeyeText">Sphere</h4></div>
@@ -226,212 +217,210 @@
                 <div class="eyeblock3"><input id="osCy" type="text" class="inputeyefildes" placeholder="+3.50"></div>
                 <div class="eyeblock3"><input id="osAx" type="text" class="inputeyefildes" placeholder="80"></div>
               </div>
-              <progress id="progressBar" value="0" max="100" style="margin-left: 15%; width: 70%; margin-top: 0;"></progress>
-              <p id="errorMessage" style="text-align: left; margin-bottom: 5px; margin-left: 17%; width: 70%; color: red; margin-top: 5px;">Please fill in all fields, and if you wanna skip, add all 0</p>
-              <button class="login-button widthbut" onclick="validateFields()">Continue</button>
-            </div>
-          
-            <!-- نافذة الكاميرا المنبثقة -->
-            <div id="cameraPopup" class="popup">
-              <div class="popup-content">
-                <span class="close-btn" onclick="closeCameraPopup()">&times;</span>
-                <h3>Select Camera</h3>
-                <select id="cameraSelect" onchange="switchCamera()">
-                  <option value="environment">Back Camera</option>
-                  <option value="user">Front Camera</option>
-                </select>
-                <video id="cameraPreview" autoplay style="width: 100%; max-width: 400px; margin-top: 10px;"></video>
-                <button id="captureButton" onclick="captureImage()">Capture</button>
+                <progress id="progressBar" value="0" max="100" style="margin-left: 15%; width: 70%; margin-top: 0;"></progress>
+                <p id="errorMessage" style="text-align: left; margin-bottom: 5px; margin-left: 17%; width: 70%; color: red; margin-top: 5px;">Please fill in all fields, and if you wanna skip, add all 0</p>
+                <button class="login-button widthbut" onclick="validateFields()">Continue</button>
               </div>
-            </div>
+            
+              <div id="cameraPopup" class="popup">
+                <div class="popup-content">
+                  <span class="close-btn" onclick="closeCameraPopup()">&times;</span>
+                  <h3>Select Camera</h3>
+                  <select id="cameraSelect" onchange="switchCamera()">
+                    <option value="environment">Back Camera</option>
+                    <option value="user">Front Camera</option>
+                  </select>
+                  <video id="cameraPreview" autoplay style="width: 100%; max-width: 400px; margin-top: 10px;"></video>
+                  <button id="captureButton" onclick="captureImage()">Capture</button>
+                </div>
+              </div>
             <script>
-let cameraStream = null;
-let currentCamera = 'environment'; // الكاميرا الافتراضية (الخلفية)
+              let cameraStream = null;
+              let currentCamera = 'environment'; // الكاميرا الافتراضية (الخلفية)
 
-// فتح النافذة المنبثقة للكاميرا
-function openCameraPopup(mode) {
-  const popup = document.getElementById('cameraPopup');
-  popup.style.display = 'flex';
-  openCamera();
+              // فتح النافذة المنبثقة للكاميرا
+              function openCameraPopup(mode) {
+                const popup = document.getElementById('cameraPopup');
+                popup.style.display = 'flex';
+                openCamera();
 
-  if (mode === 'scan') {
-    setTimeout(() => {
-      captureImage();
-    }, 3000); // يلتقط الصورة تلقائيًا بعد 3 ثواني
-  }
-}
+                if (mode === 'scan') {
+                  setTimeout(() => {
+                    captureImage();
+                  }, 3000); // يلتقط الصورة تلقائيًا بعد 3 ثواني
+                }
+              }
 
-// إغلاق النافذة المنبثقة
-function closeCameraPopup() {
-  const popup = document.getElementById('cameraPopup');
-  popup.style.display = 'none';
-  stopCamera();
-}
+              // إغلاق النافذة المنبثقة
+              function closeCameraPopup() {
+                const popup = document.getElementById('cameraPopup');
+                popup.style.display = 'none';
+                stopCamera();
+              }
 
-// فتح الكاميرا
-async function openCamera() {
-  try {
-    const video = document.getElementById('cameraPreview');
-    const constraints = {
-      video: {
-        facingMode: currentCamera,
-        focusMode: 'continuous', // تفعيل الفوكس التلقائي
-        width: { ideal: 1280 }, // زيادة دقة الصورة
-        height: { ideal: 720 }
-      }
-    };
-    cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-    video.srcObject = cameraStream;
-  } catch (error) {
-    console.error('Error opening camera:', error);
-    alert('Failed to open camera. Please allow camera access.');
-  }
-}
+              // فتح الكاميرا
+              async function openCamera() {
+                try {
+                  const video = document.getElementById('cameraPreview');
+                  const constraints = {
+                    video: {
+                      facingMode: currentCamera,
+                      focusMode: 'continuous', // تفعيل الفوكس التلقائي
+                      width: { ideal: 1280 }, // زيادة دقة الصورة
+                      height: { ideal: 720 }
+                    }
+                  };
+                  cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                  video.srcObject = cameraStream;
+                } catch (error) {
+                  console.error('Error opening camera:', error);
+                  alert('Failed to open camera. Please allow camera access.');
+                }
+              }
 
-// التبديل بين الكاميرا الأمامية والخلفية
-async function switchCamera() {
-  const select = document.getElementById('cameraSelect');
-  currentCamera = select.value;
-  stopCamera();
-  await openCamera();
-}
+              // التبديل بين الكاميرا الأمامية والخلفية
+              async function switchCamera() {
+                const select = document.getElementById('cameraSelect');
+                currentCamera = select.value;
+                stopCamera();
+                await openCamera();
+              }
 
-// التقاط صورة من الكاميرا
-function captureImage() {
-  const video = document.getElementById('cameraPreview');
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const context = canvas.getContext('2d');
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+              // التقاط صورة من الكاميرا
+              function captureImage() {
+                const video = document.getElementById('cameraPreview');
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // تحسين جودة الصورة
-  const image = canvas.toDataURL('image/jpeg', 0.9); // جودة 90%
+                // تحسين جودة الصورة
+                const image = canvas.toDataURL('image/jpeg', 0.9); // جودة 90%
 
-  handleImageUpload({ target: { files: [dataURLtoFile(image, 'capture.jpg')] } });
-  closeCameraPopup();
-}
+                handleImageUpload({ target: { files: [dataURLtoFile(image, 'capture.jpg')] } });
+                closeCameraPopup();
+              }
 
-async function handleImageUpload(event) {
-  const file = event.target.files[0];
-  if (!file) {
-    document.getElementById('output').innerText = 'No file selected.';
-    return;
-  }
+              async function handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (!file) {
+                  document.getElementById('output').innerText = 'No file selected.';
+                  return;
+                }
 
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('output').innerText = '';
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('output').innerText = '';
 
-  // تأخير لمدة 3 ثواني قبل بدء المعالجة
-  await new Promise(resolve => setTimeout(resolve, 3000));
+                // تأخير لمدة 3 ثواني قبل بدء المعالجة
+                await new Promise(resolve => setTimeout(resolve, 3000));
 
-  const { createWorker } = Tesseract;
-  const worker = createWorker();
+                const { createWorker } = Tesseract;
+                const worker = createWorker();
 
-  try {
-    await worker.load();
-    await worker.loadLanguage('eng'); // تغيير 'eng' إلى 'ara' للعربية
-    await worker.initialize('eng');
+                try {
+                  await worker.load();
+                  await worker.loadLanguage('eng'); // تغيير 'eng' إلى 'ara' للعربية
+                  await worker.initialize('eng');
 
-    const { data: { text } } = await worker.recognize(file, {
-      tessedit_pageseg_mode: 6, // PSM_SINGLE_BLOCK
-      tessedit_char_whitelist: '0123456789+-.ODOSAxisSphereCylinder',
-    });
+                  const { data: { text } } = await worker.recognize(file, {
+                    tessedit_pageseg_mode: 6, // PSM_SINGLE_BLOCK
+                    tessedit_char_whitelist: '0123456789+-.ODOSAxisSphereCylinder',
+                  });
 
-    if (text.trim() === '') {
-      document.getElementById('output').innerText = 'No text found in the image.';
-    } else {
-      document.getElementById('output').innerText = text;
-      parsePrescriptionText(text);
-    }
-  } catch (error) {
-    console.error('Error during image processing:', error);
-    document.getElementById('output').innerText = 'Failed to extract text. Please try again with a clearer image.';
-  } finally {
-    await worker.terminate();
-    document.getElementById('loading').style.display = 'none';
-  }
-}
+                  if (text.trim() === '') {
+                    document.getElementById('output').innerText = 'No text found in the image.';
+                  } else {
+                    document.getElementById('output').innerText = text;
+                    parsePrescriptionText(text);
+                  }
+                } catch (error) {
+                  console.error('Error during image processing:', error);
+                  document.getElementById('output').innerText = 'Failed to extract text. Please try again with a clearer image.';
+                } finally {
+                  await worker.terminate();
+                  document.getElementById('loading').style.display = 'none';
+                }
+              }
 
-// إيقاف الكاميرا
-function stopCamera() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-  }
-}
+              // إيقاف الكاميرا
+              function stopCamera() {
+                if (cameraStream) {
+                  cameraStream.getTracks().forEach(track => track.stop());
+                }
+              }
 
-// تحويل Data URL إلى File
-function dataURLtoFile(dataURL, filename) {
-  const arr = dataURL.split(',');
-  const mime = arr[0].match(/:(.*?);/)[1];
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
-  }
-  return new File([u8arr], filename, { type: mime });
-}
+              // تحويل Data URL إلى File
+              function dataURLtoFile(dataURL, filename) {
+                const arr = dataURL.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                  u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new File([u8arr], filename, { type: mime });
+              }
 
-// معالجة الصورة واستخراج النص
-async function handleImageUpload(event) {
-  const file = event.target.files[0];
-  if (!file) {
-    document.getElementById('output').innerText = 'No file selected.';
-    return;
-  }
+              // معالجة الصورة واستخراج النص
+              async function handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (!file) {
+                  document.getElementById('output').innerText = 'No file selected.';
+                  return;
+                }
 
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('output').innerText = '';
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('output').innerText = '';
 
-  const { createWorker } = Tesseract;
-  const worker = createWorker();
+                const { createWorker } = Tesseract;
+                const worker = createWorker();
 
-  try {
-    await worker.load();
-    await worker.loadLanguage('eng'); // تغيير 'eng' إلى 'ara' للعربية
-    await worker.initialize('eng');
+                try {
+                  await worker.load();
+                  await worker.loadLanguage('eng'); // تغيير 'eng' إلى 'ara' للعربية
+                  await worker.initialize('eng');
 
-    // زيادة دقة الاستخراج باستخدام إعدادات Tesseract
-    const { data: { text } } = await worker.recognize(file, {
-      tessedit_pageseg_mode: 6, // PSM_SINGLE_BLOCK: يعامل الصورة ككتلة نصية واحدة
-      tessedit_char_whitelist: '0123456789+-.ODOSAxisSphereCylinder', // قائمة بالحروف المسموحة
-    });
+                  // زيادة دقة الاستخراج باستخدام إعدادات Tesseract
+                  const { data: { text } } = await worker.recognize(file, {
+                    tessedit_pageseg_mode: 6, // PSM_SINGLE_BLOCK: يعامل الصورة ككتلة نصية واحدة
+                    tessedit_char_whitelist: '0123456789+-.ODOSAxisSphereCylinder', // قائمة بالحروف المسموحة
+                  });
 
-    if (text.trim() === '') {
-      document.getElementById('output').innerText = 'No text found in the image.';
-    } else {
-      document.getElementById('output').innerText = text;
-      parsePrescriptionText(text);
-    }
-  } catch (error) {
-    console.error('Error during image processing:', error);
-    document.getElementById('output').innerText = 'Failed to extract text. Please try again with a clearer image.';
-  } finally {
-    await worker.terminate();
-    document.getElementById('loading').style.display = 'none';
-  }
-}
+                  if (text.trim() === '') {
+                    document.getElementById('output').innerText = 'No text found in the image.';
+                  } else {
+                    document.getElementById('output').innerText = text;
+                    parsePrescriptionText(text);
+                  }
+                } catch (error) {
+                  console.error('Error during image processing:', error);
+                  document.getElementById('output').innerText = 'Failed to extract text. Please try again with a clearer image.';
+                } finally {
+                  await worker.terminate();
+                  document.getElementById('loading').style.display = 'none';
+                }
+              }
 
-// تحليل النص وملء الحقول
-function parsePrescriptionText(text) {
-  const odSpMatch = text.match(/OD\s*Sphere:\s*([+-]?\d+\.\d+)/);
-  const odCyMatch = text.match(/OD\s*Cylinder:\s*([+-]?\d+\.\d+)/);
-  const odAxMatch = text.match(/OD\s*Axis:\s*(\d+)/);
-  const osSpMatch = text.match(/OS\s*Sphere:\s*([+-]?\d+\.\d+)/);
-  const osCyMatch = text.match(/OS\s*Cylinder:\s*([+-]?\d+\.\d+)/);
-  const osAxMatch = text.match(/OS\s*Axis:\s*(\d+)/);
+              // تحليل النص وملء الحقول
+              function parsePrescriptionText(text) {
+                const odSpMatch = text.match(/OD\s*Sphere:\s*([+-]?\d+\.\d+)/);
+                const odCyMatch = text.match(/OD\s*Cylinder:\s*([+-]?\d+\.\d+)/);
+                const odAxMatch = text.match(/OD\s*Axis:\s*(\d+)/);
+                const osSpMatch = text.match(/OS\s*Sphere:\s*([+-]?\d+\.\d+)/);
+                const osCyMatch = text.match(/OS\s*Cylinder:\s*([+-]?\d+\.\d+)/);
+                const osAxMatch = text.match(/OS\s*Axis:\s*(\d+)/);
 
-  if (odSpMatch) document.getElementById('odSp').value = odSpMatch[1];
-  if (odCyMatch) document.getElementById('odCy').value = odCyMatch[1];
-  if (odAxMatch) document.getElementById('odAx').value = odAxMatch[1];
-  if (osSpMatch) document.getElementById('osSp').value = osSpMatch[1];
-  if (osCyMatch) document.getElementById('osCy').value = osCyMatch[1];
-  if (osAxMatch) document.getElementById('osAx').value = osAxMatch[1];
-}
+                if (odSpMatch) document.getElementById('odSp').value = odSpMatch[1];
+                if (odCyMatch) document.getElementById('odCy').value = odCyMatch[1];
+                if (odAxMatch) document.getElementById('odAx').value = odAxMatch[1];
+                if (osSpMatch) document.getElementById('osSp').value = osSpMatch[1];
+                if (osCyMatch) document.getElementById('osCy').value = osCyMatch[1];
+                if (osAxMatch) document.getElementById('osAx').value = osAxMatch[1];
+              }
               </script>
             </div>
-
           <div class="right" >
             <div class="right-contant">*
               <h2>Customize Your EyeGlass</h2>
