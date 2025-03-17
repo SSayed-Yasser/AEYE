@@ -101,9 +101,10 @@ const loginButton = document.getElementById('loginButton');
 loginButton.addEventListener('click', async () => {
   const email = document.getElementById('loginemail').value;
   const password = document.getElementById('loginpass').value;
+  const rememberMe = document.getElementById('remember-me').checked;
 
   try {
-    // Authenticate the user
+    // Authenticate the user using Firebase Authentication
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
@@ -114,74 +115,48 @@ loginButton.addEventListener('click', async () => {
     if (userDoc.exists()) {
       const userData = userDoc.data();
 
+      // التحقق من حالة الحساب (isActive)
+      if (userData.isActive === false) {
+        alert("الحساب موقوف. يرجى الاتصال بالدعم.");
+        await auth.signOut(); // تسجيل الخروج إذا كان الحساب موقوفًا
+        return;
+      }
+
       // Save user data to localStorage
       localStorage.setItem('userData', JSON.stringify(userData));
+      localStorage.setItem('loginmethod', '555');
 
-      // Display user data
-      displayStoredData();
+      // If "Remember Me" is checked, store email and password
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+        localStorage.setItem('rememberedPassword', password);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem('rememberedPassword');
+      }
+
+      // Redirect to account page
       window.location.href = './account.html';
-      localStorage.setItem('loginmethod', '555')
-      var rememberMe = document.getElementById('remember-me').checked;
-      // If "Remember Me" is checked, store email and password
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      } else {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      }
-      // If "Remember Me" is checked, store email and password
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      } else {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      }
       alert('Login successful!');
     } else {
-      // If "Remember Me" is checked, store email and password
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      } else {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      }
       alert('No user data found in Firestore.');
     }
   } catch (error) {
+    console.error('Error logging in:', error);
+
+    // Handle specific errors
     if (error.code === 'auth/user-not-found') {
-      // If "Remember Me" is checked, store email and password
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      } else {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      }
       alert('No user found with this email.');
     } else if (error.code === 'auth/wrong-password') {
-      // If "Remember Me" is checked, store email and password
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      } else {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      }
       alert('Incorrect password.');
     } else {
-      // If "Remember Me" is checked, store email and password
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      } else {
-        localStorage.setItem('rememberedEmail', email);
-        localStorage.setItem('rememberedPassword', password);
-      }
-      console.error('Error logging in:', error);
       alert('Error logging in. Please try again.');
+    }
+
+    // Clear stored email and password if "Remember Me" is not checked
+    if (!rememberMe) {
+      localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('rememberedPassword');
     }
   }
 });

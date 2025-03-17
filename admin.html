@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="./css-files/index-css/header.css"> <!-- css file loc -->
   <link rel="stylesheet" href="./css-files/admin-css/admin.css"> <!-- css file loc -->
   <script type="module" src="./js-filse/admin-js/admin.js"></script>
-  <script type="module" src="./js-filse/admin-js/acc.js"></script>
 </head>
 <body>
   <!-- header -->
@@ -18,7 +17,14 @@
     </div>
     <div class="main-header">
       <a id="all-glasses-header" href="index.html#new-sec" class="aa">Home</a>
-      <a id="all-glasses-header" href="#" class="aa" onclick="">Orders</a>
+      <a id="141414" href="#" class="aa" onclick="
+              document.getElementById('ordersss').style.display = 'block';
+              document.getElementById('userss').style.display = 'none';
+              ">Orders</a>
+      <a id="151515" href="#" class="aa" onclick="
+              document.getElementById('ordersss').style.display = 'none';
+              document.getElementById('userss').style.display = 'block';
+              ">Users</a>
     </div>
     <div class="login-button-home">
       <div class="bage-center" onclick="window.location.href = './checkout.html';" style="margin-right: 10;">
@@ -46,14 +52,29 @@
   <div class="orderss" id="ordersss">
     <div id="admin-container" class="hidden">
       <h1>Admin Panel</h1>
-      <div id="orders-list">
+      <!-- أزرار التصفية -->
+      <div class="filter-buttons">
+        <button class="btntt" onclick="filterOrders('all')">View all</button>
+        <button class="btntt" onclick="filterOrders('manufacturing')">Manufacturing</button>
+        <button class="btntt" onclick="filterOrders('packing')">Packing</button>
+        <button class="btntt" onclick="filterOrders('shipping')">Shipping</button>
       </div>
-    </div>   
+        <div id="orders-list"></div>
+      </div>   
   
-    <div id="error-message" class="hidden">
-      <h1>Access Denied: Admin Only</h1>  
-    </div>    
-  </div>
-
+      <div id="error-message" class="hidden">
+        <h1>Access Denied: Admin Only</h1>  
+      </div>    
+    </div>
+    <div class="user" id="userss">
+      <div id="admin-container1" class="hidden">
+        <h1>Admin Panel</h1>
+        <div id="users-list"></div>
+      </div>   
+  
+      <div id="error-message1" class="hidden">
+        <h1>Access Denied: Admin Only</h1>  
+      </div>    
+    </div>
 </body>
 </html>
