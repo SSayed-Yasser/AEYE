@@ -235,9 +235,9 @@
   background-color: #0027322f;
 }
 .inputs1 {
-  width: 70px;
+  width: 50px;
   border-radius: 10px;
-  padding: 5px;
+  padding: 0px;
   border-radius: 10px;
   background-color: #59595923;
   border: none;
@@ -263,12 +263,13 @@
   padding: 7px;
   padding-left: 15px;
   padding-right: 15px;
-  margin-right: 5px;
+  margin-right: 0px;
   border-radius: 10px;
   background-color: #410000;
   color: #fff;
   border: none;
   transition-duration: 0.5s;
+  margin-bottom: 10px;
 }
 .btntt:hover {
   width: max-content;

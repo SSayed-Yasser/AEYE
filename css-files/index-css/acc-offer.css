@@ -128,20 +128,20 @@
   margin-left: 10px;
 }
 .back-filter:hover {
-  transition-duration: 1s;
-  backdrop-filter: blur(5px);
-  .accs-h4 {
-    padding-top: 25px;
-    font-size: 130%;
-  }
-  .discription {
-    transition-duration: 1s;
-    max-width: 85%;
-    display: block;
-  }
-  .discription1 {
-    transition-duration: 1s;
-    max-width: 85%;
-    display: block;
-  }
+  transition-duration: 0.5s; 
+  backdrop-filter: blur(3px); 
+}
+.back-filter:hover .accs-h4 {
+  padding-top: 25px;
+  font-size: 130%;
+}
+
+.back-filter:hover .discription,
+.back-filter:hover .discription1 {
+  transition-duration: 0.5s;
+  max-width: 85%;
+  display: block;
+}
+.back-filter {
+  will-change: backdrop-filter, transform;
 }

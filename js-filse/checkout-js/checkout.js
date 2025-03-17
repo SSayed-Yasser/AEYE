@@ -183,6 +183,7 @@ function confirmOrder() {
       });
   } else {
     showToast();
+    window.location.href = 'login.html';
   }
 }
 
