@@ -82,6 +82,10 @@ async function loadUserOrders() {
           <p><strong>Order Date:</strong> ${new Date(order.timestamp).toLocaleString()}</p>
           <p><strong>Delivery Option:</strong> ${order.deliveryOption}</p>
           <p><strong>Total Price:</strong> ${order.totalPrice} EG</p>
+          <p><strong>PaymentMethod:</strong> ${order.paymentMethod}</p>
+          <p><strong>Number:</strong> ${order.paymentDetails.number}</p>
+          <p><strong>Provider:</strong> ${order.paymentDetails.provider}</p>
+          <p><strong>PaymentStatus:</strong> ${order.paymentStatus}</p>
         </div>
         <div class="product-list">
           ${productsList}

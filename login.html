@@ -219,7 +219,57 @@
               </div>
                 <progress id="progressBar" value="0" max="100" style="margin-left: 15%; width: 70%; margin-top: 0;"></progress>
                 <p id="errorMessage" style="text-align: left; margin-bottom: 5px; margin-left: 17%; width: 70%; color: red; margin-top: 5px;">Please fill in all fields, and if you wanna skip, add all 0</p>
-                <button class="login-button widthbut" onclick="validateFields()">Continue</button>
+                <button class="sssggssddss login-button widthbut" onclick="
+                  // Get input fields
+                  const odSp = document.getElementById('odSp');
+                  const odCy = document.getElementById('odCy');
+                  const odAx = document.getElementById('odAx');
+                  const osSp = document.getElementById('osSp');
+                  const osCy = document.getElementById('osCy');
+                  const osAx = document.getElementById('osAx');
+
+                  // Get the button and error message elements
+                  const button = document.querySelector('.sssggssddss');
+                  const errorMessage = document.getElementById('errorMessage');
+
+                  // Function to check if the value is valid
+                  const isValid = (value) => {
+                    const num = parseFloat(value);
+                    return /^[+-]?\d+(\.\d+)?$/.test(value) && num >= -1000 && num <= 1000;
+                  };
+
+                  // Variable to track if there are any invalid fields
+                  let hasInvalidField = false;
+
+                  // Validate each input field
+                  [odSp, odCy, odAx, osSp, osCy, osAx].forEach((field) => {
+                    if (!isValid(field.value)) {
+                      // If the field is invalid, set it to zero
+                      if (field.value.trim() === '' || /[^\d.+-]/.test(field.value) || parseFloat(field.value) < -1000 || parseFloat(field.value) > 10003) {
+                        field.value = '0';
+                      }
+                      hasInvalidField = true;
+                    }
+                  });
+
+                  // Handle button text and error message
+                  if (hasInvalidField) {
+                    button.textContent = 'Skip';
+                    errorMessage.textContent = '';
+                  } else {
+                    button.textContent = 'Continue';
+                    // Store values in localStorage for persistence
+                    localStorage.setItem('odSp', odSp.value); // Store Right Eye Sphere
+                    localStorage.setItem('odCy', odCy.value); // Store Right Eye Cylinder
+                    localStorage.setItem('odAx', odAx.value); // Store Right Eye Axis
+                    localStorage.setItem('osSp', osSp.value); // Store Left Eye Sphere
+                    localStorage.setItem('osCy', osCy.value); // Store Left Eye Cylinder
+                    localStorage.setItem('osAx', osAx.value); // Store Left Eye Axis
+                    document.getElementById('part1sinup').style.display = 'none';
+                    document.getElementById('part2sinup').style.display = 'none';
+                    document.getElementById('part3sinup').style.display = 'block';
+                  }
+              ">Continue</button>
               </div>
             
               <div id="cameraPopup" class="popup">

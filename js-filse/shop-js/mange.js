@@ -1,4 +1,7 @@
-import {products} from '../db-js/products.js';
+// Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { products } from '../db-js/products.js';
 
 // Initialize cart count on page load
 function updateCartCount() {
@@ -8,202 +11,282 @@ function updateCartCount() {
 }
 updateCartCount();
 
-// eye glasses
-let menProducts = products.filter(product => 
-  product.type === "men" || product.type === "chil" || product.type === "women"
-);
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyA2Yl1VfdSjLfa3WGEszCOs4uA9vLAJVN0",
+  authDomain: "aeye-52e5c.firebaseapp.com",
+  projectId: "aeye-52e5c",
+  storageBucket: "aeye-52e5c.appspot.com",
+  messagingSenderId: "721877823117",
+  appId: "1:721877823117:web:5e789ac89e2baf9abffcc4",
+  measurementId: "G-4NGC51320Q"
+};
 
-let menproudctHTML = '';
-menProducts.forEach((products) => {
-    menproudctHTML += `
-          <div class="contant-containar-all">
-          <div class="sale-containar">
-            <div class="sale-div">
-              <h6 class="sale-h6">Sale</h6>
-              <h6 class="sale-h6">${products.sale}%</h6>
-              <h6 class="sale-h7" style="display: none;">${products.id}</h6>
-            </div>
-          </div>
-          <img src="${products.img}" alt="sayed" class="img-all-cont">
-          <div class="lens-type-dive">
-            <h5>• Lens Type:&nbsp;</h5>
-            <h5 id="lenstype-con">${products.lens}</h5>
-          </div>
-          <button class="quick-add-button-css btn liquid">QUICK ADD</button>
-          <p class="name-all">${products.name}</p>
-          <div class="price-div">
-            <p class="prive-without-sele">${products.price} EG</p>
-            <p class="prive-with-sele">${products.price-(products.price*products.sale/100)} EG</p>
-          </div>
-        </div>
-    `; 
-});
-document.querySelector('.men-containar').innerHTML = menproudctHTML;
-// eye glasses
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// all sun
-let sunProducts = products.filter(products => products.type === "sun");
-let sunproudctHTML = '';
-sunProducts.forEach((products) => {
-    sunproudctHTML += `
-          <div class="contant-containar-all">
-          <div class="sale-containar">
-            <div class="sale-div">
-              <h6 class="sale-h6">Sale</h6>
-              <h6 class="sale-h6">${products.sale}%</h6>
-              <h6 class="sale-h7" style="display: none;">${products.id}</h6>
-            </div>
-          </div>
-          <img src="${products.img}" alt="sayed" class="img-all-cont">
-          <div class="lens-type-dive">
-            <h5>• Lens Type:&nbsp;</h5>
-            <h5 id="lenstype-con">${products.lens}</h5>
-          </div>
-          <button class="quick-add-button-css btn liquid">QUICK ADD</button>
-          <p class="name-all">${products.name}</p>
-          <div class="price-div">
-            <p class="prive-without-sele">${products.price} EG</p>
-            <p class="prive-with-sele">${products.price-(products.price*products.sale/100)} EG</p>
-          </div>
-        </div>
-    `; 
-});
-document.querySelector('.sun-containar').innerHTML = sunproudctHTML;
-// all sun block
+// Function to fetch products from Firebase
+async function fetchProductsFromFirebase() {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'products'));
+    const newProducts = [];
 
-function showToast() {
-  Toastify({
-      text: "Login to bay",
-      duration: 3000
-  }).showToast();
+    querySnapshot.forEach((doc) => {
+      const product = doc.data();
+      newProducts.push(product);
+    });
+
+    // Add new products to the beginning of the array
+    products.unshift(...newProducts);
+    console.log('Products added from Firebase:', newProducts);
+    console.log('Updated products:', products);
+
+    // After fetching data, update the UI
+    displayProducts();
+    displaySunglassesProducts();
+    displayAccessoriesProducts();
+    displayBrandProducts();
+  } catch (error) {
+    console.error('Error fetching products:', error);
+  }
 }
 
-// Define function to add product to cart 11111
-function addToCart3(button) {
-    const productDiv = button.closest('.contant-containar-all');
+// Function to display eyeglasses products
+function displayProducts() {
+  const filteredProducts = products.filter(product => product.quantity > 0 && product.mod === "EyeGlasses");
+  let productsHTML = '';
+
+  filteredProducts.forEach((product) => {
+    productsHTML += `
+      <div class="contant-containar-all">
+        <div class="sale-containar">
+          <div class="sale-div">
+            <h6 class="sale-h6">Sale</h6>
+            <h6 class="sale-h6">${product.sale}%</h6>
+            <h6 class="sale-h7" style="display: none;">${product.id}</h6>
+          </div>
+        </div>
+        <img src="${product.img}" alt="${product.name}" class="img-all-cont">
+        <div class="lens-type-dive">
+          <h5>• Lens Type:&nbsp;</h5>
+          <h5 id="lenstype-con">${product.lens}</h5>
+        </div>
+        <button class="quick-add-button-css quick-add-button-css11 btn liquid">QUICK ADD</button>
+        <p class="name-all">${product.name}</p>
+        <div class="price-div">
+          <p class="prive-without-sele">${product.price} EG</p>
+          <p class="prive-with-sele">${product.price - (product.price * product.sale / 100)} EG</p>
+        </div>
+      </div>
+    `;
+  });
+
+  document.querySelector('.men-containar').innerHTML = productsHTML;
+  attachEventListeners(); // Reattach event listeners for buttons
+}
+
+// Function to display sunglasses products
+function displaySunglassesProducts() {
+  const sunProducts = products.filter(product => product.mod === "SunGlasses");
+  let productsHTML = '';
+
+  sunProducts.forEach((product) => {
+    productsHTML += `
+      <div class="contant-containar-all">
+        <div class="sale-containar">
+          <div class="sale-div">
+            <h6 class="sale-h6">Sale</h6>
+            <h6 class="sale-h6">${product.sale}%</h6>
+            <h6 class="sale-h7" style="display: none;">${product.id}</h6>
+          </div>
+        </div>
+        <img src="${product.img}" alt="${product.name}" class="img-all-cont">
+        <div class="lens-type-dive">
+          <h5>• Lens Type:&nbsp;</h5>
+          <h5 id="lenstype-con">${product.lens}</h5>
+        </div>
+        <button class="quick-add-button-css quick-add-button-css22 btn liquid">QUICK ADD</button>
+        <p class="name-all">${product.name}</p>
+        <div class="price-div">
+          <p class="prive-without-sele">${product.price} EG</p>
+          <p class="prive-with-sele">${product.price - (product.price * product.sale / 100)} EG</p>
+        </div>
+      </div>
+    `;
+  });
+
+  document.querySelector('.sun-containar').innerHTML = productsHTML;
+  attachEventListeners2(); // Reattach event listeners for buttons
+}
+
+// Function to display accessories (Accssoris) products
+function displayAccessoriesProducts() {
+  const accProducts = products.filter(product => product.mod === "Accssoris" && product.quantity > 0);
+  let productsHTML = '';
+
+  accProducts.forEach((product) => {
+    productsHTML += `
+      	<div class="div-accs" style="background-image: url(${product.img});">
+          <div class="back-filter">
+            <h3 class="accs-h4">${product.name}</h3>
+              <p class="discription">${product.discr}<p class="discription1">one year warranty</p></p>
+              <div class="sale-div12">
+                <h6 class="sale-h6">Sale</h6>
+                <h6 class="sale-h6">${product.sale}%</h6>
+              </div>
+              <button class="button-acc button-acc11 button-animation2">Buy Now</button>
+              <div class="price-div12">
+                <p class="prive-without-sele2">${product.price} EG</p>
+                <p class="prive-with-sele2">${product.price - (product.price * product.sale / 100)} EG</p>
+                <h6 class="sale-h7" style="display: none;">${product.id}</h6>
+              </div>
+          </div>
+        </div>
+    `;
+  });
+
+  document.querySelector('.all-glasses-containar2233').innerHTML = productsHTML;
+  attachBuyNowEventListeners(); // Attach event listeners for "Buy Now" buttons
+}
+
+// Function to display brand (Brand) products
+function displayBrandProducts() {
+  const brandProducts = products.filter(product => product.mod === "Brand" && product.quantity > 0);
+  let productsHTML = '';
+
+  brandProducts.slice(0, 10).forEach((product) => {
+    productsHTML += `
+      	<div class="div-accs" style="background-image: url(${product.img});">
+          <div class="back-filter">
+            <h3 class="accs-h4">${product.name}</h3>
+              <p class="discription">${product.discr}<p class="discription1">one year warranty</p></p>
+              <div class="sale-div12">
+                <h6 class="sale-h6">Sale</h6>
+                <h6 class="sale-h6">${product.sale}%</h6>
+              </div>
+              <button class="button-acc button-acc22 button-animation2">Buy Now</button>
+              <div class="price-div12">
+                <p class="prive-without-sele2">${product.price} EG</p>
+                <p class="prive-with-sele2">${product.price - (product.price * product.sale / 100)} EG</p>
+                <h6 class="sale-h7" style="display: none;">${product.id}</h6>
+              </div>
+          </div>
+        </div>
+    `;
+  });
+
+  document.querySelector('.all-glasses-containar223344').innerHTML = productsHTML;
+  attachBuyNowEventListeners2(); // Attach event listeners for "Buy Now" buttons
+}
+
+// Function to attach event listeners to "QUICK ADD" buttons
+function attachEventListeners() {
+  document.querySelectorAll('.quick-add-button-css11').forEach(button => {
+    button.addEventListener('click', function() {
+      console.log('QUICK ADD button clicked'); // Debugging
+      addToCart(this);
+    });
+  });
+}
+// Function to attach event listeners to "QUICK ADD" buttons
+function attachEventListeners2() {
+  document.querySelectorAll('.quick-add-button-css22').forEach(button => {
+    button.addEventListener('click', function() {
+      console.log('QUICK ADD button clicked'); // Debugging
+      addToCart(this);
+    });
+  });
+}
+
+// Function to attach event listeners to "Buy Now" buttons
+function attachBuyNowEventListeners() {
+  document.querySelectorAll('.button-acc11').forEach(button => {
+    button.addEventListener('click', function() {
+      console.log('Buy Now button clicked'); // Debugging
+      addToCartFromAccsOrBrand(this);
+    });
+  });
+}
+// Function to attach event listeners to "Buy Now" buttons
+function attachBuyNowEventListeners2() {
+  document.querySelectorAll('.button-acc22').forEach(button => {
+    button.addEventListener('click', function() {
+      console.log('Buy Now button clicked'); // Debugging
+      addToCartFromAccsOrBrand(this);
+    });
+  });
+}
+
+// Function to add product to cart from eyeglasses or sunglasses sections
+function addToCart(button) {
+  const productDiv = button.closest('.contant-containar-all');
+  const productId = productDiv.querySelector('.sale-h7').textContent;
+
+  const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
+
+  // Check if the product already exists in the cart
+  const existingProductIndex = selectedProducts.findIndex(product => product.id === productId);
+  if (existingProductIndex > -1) {
+    // If the product exists, increase the quantity by 1
+    selectedProducts[existingProductIndex].quantity += 1;
+  } else {
+    // If the product does not exist, add it with quantity 1
     const productName = productDiv.querySelector('.name-all').textContent;
     const productImg = productDiv.querySelector('img').src;
-    const productDiscr = productDiv.querySelector('.lens-type-dive').textContent;
+    const productDescription = productDiv.querySelector('.lens-type-dive').textContent;
     const productSale = productDiv.querySelectorAll('.sale-h6')[1].textContent.replace('%', '');
     const productPrice = productDiv.querySelector('.prive-with-sele').textContent.replace(' EG', '');
-    const productId = productDiv.querySelector('.sale-h7').textContent;
 
-    const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
-
-    // Find if product is already in the cart
-    const existingProductIndex = selectedProducts.findIndex(product => product.id === productId);
-    if (existingProductIndex > -1) {
-        // If product exists, increase the quantity
-        selectedProducts[existingProductIndex].quantity += 1;
-    } else {
-        // If product does not exist, add it
-        selectedProducts.push({
-            id: productId,
-            name: productName,
-            img: productImg,
-            discr: productDiscr,
-            sale: productSale,
-            price: productPrice,
-            quantity: 1,
-        });
-    }
-
-    localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
-
-    updateCartCount();
+    selectedProducts.push({
+      id: productId,
+      name: productName,
+      img: productImg,
+      discr: productDescription,
+      sale: productSale,
+      price: productPrice,
+      quantity: 1, // Start with quantity 1
+    });
   }
-// Apply event listeners to all 'quick-add-button-css' buttons
-document.querySelectorAll('.quick-add-button-css').forEach(button => {
-  button.addEventListener('click', function() {
-      addToCart3(this);
-  });
-});
 
-// accs
-let accProducts = products.filter(products => products.mod === "acc");
-let accsHTML = '';
-accProducts.forEach((products) => {
-    accsHTML += `
-        <div class="div-accs" style=" background-image: url(${products.img});">
-          <div class="back-filter">
-            <h3 class="accs-h4">${products.name}</h3>
-              <p class="discription">${products.discr}<p class="discription1">one year warranty</p></p>
-              <div class="sale-div12">
-                <h6 class="sale-h6">Sale</h6>
-                <h6 class="sale-h6">${products.sale}%</h6>
-              </div>
-              <button class="button-acc button-animation2">Bay Now</button>
-              <div class="price-div12">
-                <p class="prive-without-sele2">${products.price} EG</p>
-                <p class="prive-with-sele2">${products.price-(products.price*products.sale/100)} EG</p>
-                <h6 class="sale-h7" style="display: none;">${products.id}</h6>
-              </div>
-          </div>
-        </div>
-    `; 
-});
-document.querySelector('.all-glasses-containar2233').innerHTML = accsHTML;
+  localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
+  updateCartCount();
+}
 
-// off
-let offersProducts = products.filter(products => products.mod === "off");
-let proudct1HTML = '';
-offersProducts.slice(0, 10).forEach((products) => {
-    proudct1HTML += `
-        <div class="div-accs" style=" background-image: url(${products.img});">
-          <div class="back-filter">
-            <h3 class="accs-h4">${products.name}</h3>
-              <p class="discription">${products.discr}<p class="discription1">one year warranty</p></p>
-              <div class="sale-div12">
-                <h6 class="sale-h6">Sale</h6>
-                <h6 class="sale-h6">${products.sale}%</h6>
-              </div>
-              <button id="sayed" class="button-acc button-animation2">Bay Now</button>
-              <div class="price-div12">
-                <p class="prive-without-sele2">${products.price} EG</p>
-                <p class="prive-with-sele2">${products.price-(products.price*products.sale/100)} EG</p>
-                <h6 class="sale-h7" style="display: none;">${products.id}</h6>
-              </div>
-          </div>
-        </div>
-    `; 
-});
-document.querySelector('.all-glasses-containar223344').innerHTML = proudct1HTML;
+// Function to add product to cart from accessories or brand sections
+function addToCartFromAccsOrBrand(button) {
+  const productDiv = button.closest('.div-accs');
+  const productId = productDiv.querySelector('.sale-h7').textContent;
 
-function addToCart(button) {
-    const productDiv = button.closest('.div-accs');
+  const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
+
+  // Check if the product already exists in the cart
+  const existingProductIndex = selectedProducts.findIndex(product => product.id === productId);
+  if (existingProductIndex > -1) {
+    // If the product exists, increase the quantity by 1
+    selectedProducts[existingProductIndex].quantity += 1;
+  } else {
+    // If the product does not exist, add it with quantity 1
     const productName = productDiv.querySelector('.accs-h4').textContent;
-    const productImg = productDiv.style.backgroundImage.slice(5, -2); 
-    const productDiscr = productDiv.querySelector('.discription').textContent.split("one year warranty")[0];
+    const productImg = productDiv.style.backgroundImage.slice(5, -2); // Extract image URL from background-image
+    const productDescription = productDiv.querySelector('.discription').textContent.split("one year warranty")[0];
     const productSale = productDiv.querySelectorAll('.sale-h6')[1].textContent.replace('%', '');
     const productPrice = productDiv.querySelector('.prive-with-sele2').textContent.replace(' EG', '');
-    const productId = productDiv.querySelector('.sale-h7').textContent;
 
-    const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
-
-    // Find if product is already in the cart
-    const existingProductIndex = selectedProducts.findIndex(product => product.id === productId);
-
-    if (existingProductIndex > -1) {
-        selectedProducts[existingProductIndex].quantity += 1;
-    } else {
-        selectedProducts.push({
-            id: productId,
-            name: productName,
-            img: productImg,
-            discr: productDiscr,
-            sale: productSale,
-            price: productPrice,
-            quantity: 1,
-        });
-    }
-
-    localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
-
-    updateCartCount();
+    selectedProducts.push({
+      id: productId,
+      name: productName,
+      img: productImg,
+      discr: productDescription,
+      sale: productSale,
+      price: productPrice,
+      quantity: 1, // Start with quantity 1
+    });
   }
-document.querySelectorAll('.button-acc').forEach(button => {
-  button.addEventListener('click', function() {
-      addToCart(this);
-  });
-});
 
+  localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
+  updateCartCount();
+}
+
+// Fetch products from Firebase and display all products
+fetchProductsFromFirebase();

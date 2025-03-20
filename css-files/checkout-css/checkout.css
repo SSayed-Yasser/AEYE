@@ -292,3 +292,133 @@ body::-webkit-scrollbar {
 }
 
 
+
+
+
+
+
+
+
+/* Add your custom styles here */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow: auto;
+}
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 50%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.close:hover {
+  color: #000;
+}
+.payment-option {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-radius: 10px;
+  background-color: #00162c;
+  color: #fff;
+}
+.payment-option:hover {
+  background-color: #013161;
+  transition: background-color 0.3s;
+}
+.payment-form {
+  display: none;
+  margin-top: 20px;
+  animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.payment-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+.payment-form button {
+  background-color: #3c0000;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.payment-form button:hover {
+  background-color: #450000;
+}
+
+
+
+#walletProvider {
+  background-color: #2e0000;
+  color: #fff;
+  border-radius: 10px;
+  padding: 5px;
+  transition: background-color 0.3s;
+}
+#walletProvider:hover {
+  background-color: #490000;
+  transition: background-color 0.3s;
+}
+
+#walletNumber {
+  width: 90%;
+  height: 30px;
+  border-radius: 10px;
+  padding: 0px;
+  border-radius: 10px;
+  background-color: #59595923;
+  border: none;
+  outline: none;
+  padding-left: 10px;
+  padding-right: 10px;
+  transition-duration: 1s;
+  margin: 0;
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+#walletNumber:hover {
+  background-color: #0027342f;
+  transition-duration: 1s;
+}
+#walletNumber:focus {
+  border-bottom: #420000 1px solid;
+  background-color: #0027322f;
+}
+
+.sayed {
+  margin-top: 15px;
+}

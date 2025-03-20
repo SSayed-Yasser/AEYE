@@ -1,7 +1,6 @@
-window.updateDeliveryOption = updateDeliveryOption;
-// Import the necessary functions
+// Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, updateDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -18,6 +17,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Import Stripe.js
+const stripe = Stripe('your-publishable-key'); // Replace with your Stripe Publishable Key
+
 // Update cart count
 function updateCartCount() {
   const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
@@ -27,13 +29,20 @@ function updateCartCount() {
 }
 updateCartCount();
 
-function showToast() {
+// Show toast notification
+function showToast(message, backgroundColor = 'red') {
   Toastify({
-    text: "Login to buy",
-    duration: 3000
+    text: message,
+    duration: 3000,
+    backgroundColor: backgroundColor,
+    close: true,
+    gravity: 'top',
+    position: 'center',
+    stopOnFocus: true,
   }).showToast();
 }
 
+// Update total price, tax, and final price
 function updateTotalPrice() {
   const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
   let totalPrice = selectedProducts.reduce((total, product) => total + (parseInt(product.price) * product.quantity), 0);
@@ -54,6 +63,7 @@ function updateTotalPrice() {
   document.querySelector('#final-price').textContent = finalPrice + " EG";
 }
 
+// Load checkout products
 function loadCheckoutProducts() {
   const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
   const checkoutProductsDiv = document.getElementById('checkout-products');
@@ -113,17 +123,13 @@ function loadCheckoutProducts() {
   updateTotalPrice();
 }
 
-// Export the function so it can be used in the DOM
-export function updateDeliveryOption(index, cost) {
+// Update delivery option
+window.updateDeliveryOption = function (index, cost) {
   localStorage.setItem(`delivery-${index}`, cost.toString());
   updateTotalPrice();
-}
+};
 
-// Load products on page load
-document.addEventListener('DOMContentLoaded', () => {
-  loadCheckoutProducts();
-});
-
+// Remove product from cart
 function removeProduct(index) {
   let selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
   selectedProducts.splice(index, 1);
@@ -134,18 +140,137 @@ function removeProduct(index) {
   loadCheckoutProducts();
 }
 
+// Load products on page load
+document.addEventListener('DOMContentLoaded', () => {
+  loadCheckoutProducts();
+  itemes();
+});
 
-// get button
+// Payment Modal Logic
+const modal = document.getElementById('paymentModal');
+const closeModal = document.querySelector('.close');
 const confirmOrderButton = document.getElementById('confirmOrder');
-confirmOrderButton.onclick = function () {
-  confirmOrder();
-};
+const cashPaymentButton = document.getElementById('cashPayment');
+const mobileWalletButton = document.getElementById('mobileWallet');
+const cardPaymentButton = document.getElementById('cardPayment');
+const instaPayButton = document.getElementById('instaPay');
+const stripePaymentForm = document.getElementById('stripePaymentForm');
+const mobileWalletForm = document.getElementById('mobileWalletForm');
+const instaPayForm = document.getElementById('instaPayForm');
 
-function confirmOrder() {
+// Open modal when "Place your order" is clicked
+confirmOrderButton.addEventListener('click', () => {
+  modal.style.display = 'block';
+});
+
+// Close modal when clicking on the close button
+closeModal.addEventListener('click', () => {
+  modal.style.display = 'none';
+  hideAllForms();
+});
+
+// Close modal when clicking outside the modal
+window.addEventListener('click', (event) => {
+  if (event.target === modal) {
+    modal.style.display = 'none';
+    hideAllForms();
+  }
+});
+
+// Hide all payment forms
+function hideAllForms() {
+  stripePaymentForm.style.display = 'none';
+  mobileWalletForm.style.display = 'none';
+  instaPayForm.style.display = 'none';
+}
+
+// Handle Cash Payment
+cashPaymentButton.addEventListener('click', async () => {
+  hideAllForms();
+  await confirmOrder('Cash');
+  modal.style.display = 'none';
+});
+
+// Handle Mobile Wallet Payment
+mobileWalletButton.addEventListener('click', () => {
+  hideAllForms();
+  mobileWalletForm.style.display = 'block';
+});
+
+// Handle InstaPay Payment
+instaPayButton.addEventListener('click', () => {
+  hideAllForms();
+  instaPayForm.style.display = 'block';
+});
+
+// Handle Mobile Wallet Form Submission
+document.getElementById('mobileWalletSubmit').addEventListener('click', async () => {
+  const walletNumber = document.getElementById('walletNumber').value;
+  const walletProvider = document.getElementById('walletProvider').value;
+
+  if (walletNumber && validateMobileWallet(walletNumber)) {
+    await confirmOrder('Mobile Wallet', { number: walletNumber, provider: walletProvider });
+    modal.style.display = 'none';
+  } else {
+    showToast('Invalid mobile wallet number. Please try again.', 'darkred');
+  }
+});
+
+// Handle InstaPay Form Submission
+document.getElementById('instaPaySubmit').addEventListener('click', async () => {
+  const instaPayNumber = document.getElementById('instaPayNumber').value;
+
+  if (instaPayNumber && validateMobileWallet(instaPayNumber)) {
+    await confirmOrder('InstaPay', { number: instaPayNumber });
+    modal.style.display = 'none';
+  } else {
+    showToast('Invalid InstaPay number. Please try again.', 'darkred');
+  }
+});
+
+// Validate Mobile Wallet Number
+function validateMobileWallet(walletNumber) {
+  const regex = /^01[0125][0-9]{8}$/; // Egyptian mobile number format
+  return regex.test(walletNumber);
+}
+
+// Handle Card Payment
+cardPaymentButton.addEventListener('click', () => {
+  hideAllForms();
+  stripePaymentForm.style.display = 'block';
+  initializeStripe();
+});
+
+// Initialize Stripe Elements
+function initializeStripe() {
+  const elements = stripe.elements();
+  const cardElement = elements.create('card');
+  cardElement.mount('#card-element');
+
+  const form = document.getElementById('payment-form');
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const { error, paymentMethod } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+    });
+
+    if (error) {
+      document.getElementById('card-errors').textContent = error.message;
+    } else {
+      await confirmOrder('Credit/Debit Card', paymentMethod.id);
+      modal.style.display = 'none';
+    }
+  });
+}
+
+async function confirmOrder(paymentMethod, paymentDetails = '') {
   if (localStorage.getItem('loginmethod') === '555') {
     const userData = JSON.parse(localStorage.getItem('userData')) || {};
     const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
 
+    // Calculate total price, delivery cost, tax, and final price
     let totalPrice = selectedProducts.reduce((total, product) => total + (parseInt(product.price) * product.quantity), 0);
     let deliveryCost = selectedProducts.reduce((total, product, index) => {
       const savedDeliveryOption = localStorage.getItem(`delivery-${index}`) || '0';
@@ -154,51 +279,72 @@ function confirmOrder() {
     let tax = Math.round(totalPrice * 0.14);
     let finalPrice = totalPrice + tax + deliveryCost;
 
+    // Prepare order data
     const orderData = {
       user: {
         name: userData.name,
-        email: userData.email, // تأكد من أن البريد يتم حفظه
+        email: userData.email,
         phone: userData.phone,
         address: userData.address
       },
       products: selectedProducts,
       totalPrice: finalPrice,
-      deliveryOption: "2 days", // مثال
-      trackingStatus: 1, // التصنيع كأول مرحلة
+      paymentMethod: paymentMethod,
+      paymentDetails: paymentDetails,
+      paymentStatus: paymentMethod === 'Cash' ? 'Pending' : 'Paid', // Cash is pending, others are paid
+      deliveryOption: deliveryCost, // Example
+      trackingStatus: 1, // Manufacturing as the first stage
       timestamp: new Date().toISOString()
     };
 
-    setDoc(doc(collection(db, "orders")), orderData)
-      .then(() => {
-        alert('Order confirmed and saved!');
-        localStorage.removeItem('selectedProducts');
-        selectedProducts.forEach((product, index) => {
-          localStorage.removeItem(`delivery-${index}`);
-        });
-        window.location.href = 'index.html';
-      })
-      .catch((error) => {
-        console.error("Error saving order: ", error);
-        alert('Failed to save the order. Please try again.');
+    try {
+      // Save the order to Firestore
+      await setDoc(doc(collection(db, "orders")), orderData);
+
+      // Update product quantities in Firestore
+      for (const product of selectedProducts) {
+        const productRef = doc(db, "products", product.id);
+        const productDoc = await getDoc(productRef);
+
+        if (productDoc.exists()) {
+          const currentQuantity = productDoc.data().quantity || 0;
+          const newQuantity = currentQuantity - product.quantity;
+
+          if (newQuantity >= 0) {
+            await updateDoc(productRef, { quantity: newQuantity });
+          } else {
+            console.error(`Not enough stock for product ${product.id}`);
+            showToast(`Not enough stock for ${product.name}`, 'darkred');
+          }
+        } else {
+          console.error(`Product ${product.id} not found in Firestore`);
+          showToast(`Product ${product.name} not found`, 'darkred');
+        }
+      }
+
+      // Clear local storage and redirect
+      localStorage.removeItem('selectedProducts');
+      selectedProducts.forEach((product, index) => {
+        localStorage.removeItem(`delivery-${index}`);
       });
+
+      showToast('Order confirmed and saved!', 'green');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 3000);
+    } catch (error) {
+      console.error("Error confirming order: ", error);
+      showToast(`Failed to confirm the order: ${error.message}`, 'darkred');
+    }
   } else {
-    showToast();
-    window.location.href = 'login.html';
+    showToast('Login to buy', 'darkred');
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 3000);
   }
 }
 
-
-// Link the confirm order function to the button
-document.addEventListener('DOMContentLoaded', () => {
-  const confirmOrderButton = document.getElementById('confirmOrder');
-  confirmOrderButton.onclick = confirmOrder;
-});
-
-
-
-loadCheckoutProducts();
-
-
+// Display items in the order summary
 function itemes() {
   const selectedProducts2 = JSON.parse(localStorage.getItem('selectedProducts')) || [];
   const checkoutProductsDiv2 = document.getElementById('sayed-products');
@@ -220,5 +366,3 @@ function itemes() {
     checkoutProductsDiv2.appendChild(productDiv);
   });
 }
-
-itemes();
