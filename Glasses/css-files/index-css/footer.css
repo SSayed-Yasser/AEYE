@@ -1,0 +1,148 @@
+.over-footer {
+  margin-top: 20px;
+  width: 100%;
+  height: 220px;
+  align-content: center;
+}
+.contant-o {
+  width: 95%;
+  height: 150px;
+  background-color: #dedede;
+  margin-left: 2.5%;
+  margin-right: 2.5%;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.te3bt-img {
+  height: 70px;
+  width: 70px;
+  border-radius: 50%; 
+  object-fit: cover;
+}
+.te3bt {
+  max-width: 200px;
+  height: 100%;
+  align-items: center;
+  align-content: center;
+  margin: 0;
+  padding: 0;
+  margin-top: -25px;
+  margin-left: 10px;
+}
+@media (max-width: 2000px) {
+  .te3bt {
+    max-width: 1000px;
+  }
+}
+@media (max-width: 1000px) {
+  .te3bt {
+    max-width: 450px;
+  }
+}
+@media (max-width: 575px) {
+  .te3bt {
+    max-width: 200px;
+  }
+}
+
+
+
+.footer {
+  width: 100%;
+  height: 200px;
+  background-color: #272727;
+  padding-top: 20px;
+}
+.logo-text {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.h3-footer {
+  color: fff;
+  margin-left: 10px;
+}
+.img-fo {
+  width: 50px;
+  height: 40px;
+}
+.cont01 {
+  height: 150px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: space-evenly;
+  background-color: #222222;
+  width: 100%;
+  padding-top: 20px;
+  box-shadow: 0px -5px 5px #141414;
+  margin: 0;
+}
+.cont011 {
+  align-items: center;
+  text-align: center;
+  justify-content: space-evenly;
+  background-color: #222222;
+  width: 100%;
+  height: 50px;
+  margin: 0;
+}
+.item-01 {
+  width: 60px;
+  height: 60px;
+  background-color: #002b55;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #302f2f;
+}
+.item-02 {
+  width: 60px;
+  height: 60px;
+  background-color: #00162c;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #302f2f;
+}
+.item-03 {
+  width: 60px;
+  height: 60px;
+  background-color: #9f1300;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #302f2f;
+}
+.item-04 {
+  width: 60px;
+  height: 60px;
+  background-color: #6d0d00;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #302f2f;
+}
+.pp01 {
+  color: #ffffff9b;
+  font-size: 60%;
+  margin-top: 5px;
+}
+.pp02 {
+  color: #ffffff9b;
+  font-size: 60%;
+  margin-top: 5px;
+}
+.pp03 {
+  color: #ffffff9b;
+  font-size: 60%;
+  margin-top: 5px;
+}
+.pp04 {
+  color: #ffffff9b;
+  font-size: 60%;
+  margin-top: 5px;
+}
+.pp05 {
+  text-align: center;
+  color: #ffffff9b;
+  margin: 0;
+}

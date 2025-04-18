@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>A-EYE</title> <!-- web name -->
+    <LInk rel="icon" href="./image/logos/logo-02.png" type="image/x-icon"> <!-- web icon -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Variables for colors */
+        :root {
+            --dark-blue: #07111f;
+            --light-blue: #172a45;
+            --accent-blue: #fff;
+            --dark-red: #8b0000;
+            --light-red: #ff6b6b;
+            --text-color: #ccd6f6;
+            --transition: all 0.3s ease-in-out;
+        }
+
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-blue);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* Fade in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header styles */
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--accent-blue);
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        /* Header underline animation */
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background-color: var(--dark-red);
+            animation: expandLine 1.5s ease-in-out forwards;
+        }
+
+        @keyframes expandLine {
+            from { width: 0; }
+            to { width: 100px; }
+        }
+
+        /* Settings section styling */
+        .settings-section {
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: var(--transition);
+        }
+
+        .settings-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .settings-section h2 {
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .settings-section h2 i {
+            margin-right: 10px;
+        }
+
+        /* Language selector styles */
+        .language-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .language-option {
+            background-color: var(--dark-blue);
+            border: 2px solid transparent;
+            border-radius: 5px;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .language-option:hover {
+            border-color: var(--accent-blue);
+            transform: scale(1.05) translateY(0);
+        }
+
+        .language-option.active {
+            border-color: var(--dark-red);
+            background-color: rgba(139, 0, 0, 0.2);
+            transform: scale(1.05) translateY(0);
+        }
+
+        .language-flag {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        /* About section styles */
+        .about-section {
+            line-height: 1.8;
+        }
+
+        .about-section p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        /* Team members grid */
+        .team-members {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .team-member {
+            background-color: var(--dark-blue);
+            padding: 1.5rem;
+            border-radius: 8px;
+            transition: var(--transition);
+            border-left: 3px solid var(--dark-red);
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .team-member h3 {
+            color: var(--light-red);
+            margin-bottom: 0.5rem;
+        }
+
+        .team-member .id {
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        /* Save button styles */
+        .save-btn {
+            background-color: var(--dark-red);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            display: block;
+            margin: 2rem auto 0;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .save-btn:hover {
+            background-color: var(--light-red);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .save-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Language change animation */
+        @keyframes languageChange {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .language-changed {
+            animation: languageChange 0.5s ease-in-out;
+        }
+
+        /* RTL support for Arabic */
+        [dir="rtl"] {
+            text-align: right;
+        }
+
+        [dir="rtl"] .language-flag {
+            margin-right: 0;
+            margin-left: 10px;
+        }
+
+        [dir="rtl"] .team-member {
+            border-left: none;
+            border-right: 3px solid var(--dark-red);
+        }
+
+        [dir="rtl"] .settings-section h2 i {
+            margin-right: 0;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-cog"></i> <span data-translate="title">Website Settings</span></h1>
+        
+        <!-- Language Settings Section -->
+        <div class="settings-section">
+            <h2><i class="fas fa-language"></i> <span data-translate="languageSettings">Language Settings</span></h2>
+            <div class="language-selector">
+                <div class="language-option" data-lang="en" data-dir="ltr">
+                    <img src="https://flagcdn.com/w20/us.png" class="language-flag" alt="English">
+                    <span>English (US)</span>
+                </div>
+                <div class="language-option" data-lang="en-UK" data-dir="ltr">
+                    <img src="https://flagcdn.com/w20/gb.png" class="language-flag" alt="English UK">
+                    <span>English (UK)</span>
+                </div>
+                <div class="language-option" data-lang="ar" data-dir="rtl">
+                    <img src="https://flagcdn.com/w20/eg.png" class="language-flag" alt="Arabic">
+                    <span>العربية (Arabic)</span>
+                </div>
+                <div class="language-option" data-lang="fr" data-dir="ltr">
+                    <img src="https://flagcdn.com/w20/fr.png" class="language-flag" alt="French">
+                    <span>Français (French)</span>
+                </div>
+                <div class="language-option" data-lang="es" data-dir="ltr">
+                    <img src="https://flagcdn.com/w20/es.png" class="language-flag" alt="Spanish">
+                    <span>Español (Spanish)</span>
+                </div>
+                <div class="language-option" data-lang="de" data-dir="ltr">
+                    <img src="https://flagcdn.com/w20/de.png" class="language-flag" alt="German">
+                    <span>Deutsch (German)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Us Section -->
+        <div class="settings-section about-section">
+            <h2><i class="fas fa-info-circle"></i> <span data-translate="aboutUs">About Us</span></h2>
+            <p data-translate="aboutText1">This project is a graduation project for outstanding students seeking to provide innovative technical solutions that meet user needs in the digital age.</p>
+            <p data-translate="aboutText2">This website was developed with the latest technologies and highest quality standards, combining advanced functionality with smooth user experience.</p>
+            <p data-translate="aboutText3">We are proud to have created a unique solution that combines simplicity and power, with focus on all the details that make the user experience unforgettable.</p>
+            
+            <div class="team-members">
+                <div class="team-member">
+                    <h3>Sayed Yasser</h3>
+                    <p class="id">ID: 20210777</p>
+                    <p data-translate="sayedTitle">Frontend Developer and UX Expert</p>
+                </div>
+                <div class="team-member">
+                    <h3>Rawan Ahmed</h3>
+                    <p class="id">ID: 20210784</p>
+                    <p data-translate="rawanTitle">UI Designer and User Experience Specialist</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Save Settings Button -->
+        <button class="save-btn" id="saveSettings">
+            <i class="fas fa-save"></i> <span data-translate="saveButton">Save Settings</span>
+        </button>
+    </div>
+
+    <script>
+        // Translation dictionary
+        const translations = {
+            'en': {
+                'title': 'Website Settings',
+                'languageSettings': 'Language Settings',
+                'aboutUs': 'About Us',
+                'aboutText1': 'This project is a graduation project for outstanding students seeking to provide innovative technical solutions that meet user needs in the digital age.',
+                'aboutText2': 'This website was developed with the latest technologies and highest quality standards, combining advanced functionality with smooth user experience.',
+                'aboutText3': 'We are proud to have created a unique solution that combines simplicity and power, with focus on all the details that make the user experience unforgettable.',
+                'saveButton': 'Save Settings',
+                'sayedTitle': 'Frontend Developer and UX Expert',
+                'rawanTitle': 'UI Designer and User Experience Specialist',
+                'saveSuccess': 'Settings saved successfully!'
+            },
+            'en-UK': {
+                'title': 'Website Settings',
+                'languageSettings': 'Language Settings',
+                'aboutUs': 'About Us',
+                'aboutText1': 'This project is a graduation project for outstanding students seeking to provide innovative technical solutions that meet user needs in the digital age.',
+                'aboutText2': 'This website was developed with the latest technologies and highest quality standards, combining advanced functionality with smooth user experience.',
+                'aboutText3': 'We are proud to have created a unique solution that combines simplicity and power, with focus on all the details that make the user experience unforgettable.',
+                'saveButton': 'Save Settings',
+                'sayedTitle': 'Frontend Developer and UX Expert',
+                'rawanTitle': 'UI Designer and User Experience Specialist',
+                'saveSuccess': 'Settings saved successfully!'
+            },
+            'ar': {
+                'title': 'إعدادات الموقع',
+                'languageSettings': 'إعدادات اللغة',
+                'aboutUs': 'معلومات عنا',
+                'aboutText1': 'هذا المشروع هو مشروع تخرج لطلاب متميزين يسعون لتقديم حلول تقنية مبتكرة تلبي احتياجات المستخدمين في العصر الرقمي.',
+                'aboutText2': 'تم تطوير هذا الموقع بأحدث التقنيات وأعلى معايير الجودة، حيث يجمع بين الوظائف المتقدمة وتجربة المستخدم السلسة.',
+                'aboutText3': 'نحن فخورون بابتكار حل فريد يجمع بين البساطة والقوة، مع التركيز على كل التفاصيل التي تجعل تجربة المستخدم لا تنسى.',
+                'saveButton': 'حفظ الإعدادات',
+                'sayedTitle': 'مطور واجهات أمامية وخبير تجربة مستخدم',
+                'rawanTitle': 'مصمم واجهات ومتخصص في تجربة المستخدم',
+                'saveSuccess': 'تم حفظ الإعدادات بنجاح!'
+            },
+            'fr': {
+                'title': 'Paramètres du site Web',
+                'languageSettings': 'Paramètres de langue',
+                'aboutUs': 'À propos de nous',
+                'aboutText1': 'Ce projet est un projet de fin d\'études pour des étudiants exceptionnels cherchant à fournir des solutions techniques innovantes qui répondent aux besoins des utilisateurs à l\'ère numérique.',
+                'aboutText2': 'Ce site Web a été développé avec les dernières technologies et les normes de qualité les plus élevées, combinant des fonctionnalités avancées avec une expérience utilisateur fluide.',
+                'aboutText3': 'Nous sommes fiers d\'avoir créé une solution unique qui combine simplicité et puissance, en nous concentrant sur tous les détails qui rendent l\'expérience utilisateur inoubliable.',
+                'saveButton': 'Enregistrer les paramètres',
+                'sayedTitle': 'Développeur Frontend et Expert UX',
+                'rawanTitle': 'Designer UI et Spécialiste de l\'Expérience Utilisateur',
+                'saveSuccess': 'Paramètres enregistrés avec succès!'
+            },
+            'es': {
+                'title': 'Configuración del Sitio Web',
+                'languageSettings': 'Configuración de Idioma',
+                'aboutUs': 'Sobre Nosotros',
+                'aboutText1': 'Este proyecto es un proyecto de graduación para estudiantes destacados que buscan proporcionar soluciones técnicas innovadoras que satisfagan las necesidades de los usuarios en la era digital.',
+                'aboutText2': 'Este sitio web fue desarrollado con las últimas tecnologías y los más altos estándares de calidad, combinando funcionalidad avanzada con una experiencia de usuario fluida.',
+                'aboutText3': 'Estamos orgullosos de haber creado una solución única que combina simplicidad y potencia, con atención a todos los detalles que hacen que la experiencia del usuario sea inolvidable.',
+                'saveButton': 'Guardar Configuración',
+                'sayedTitle': 'Desarrollador Frontend y Experto en UX',
+                'rawanTitle': 'Diseñador UI y Especialista en Experiencia de Usuario',
+                'saveSuccess': '¡Configuración guardada con éxito!'
+            },
+            'de': {
+                'title': 'Website-Einstellungen',
+                'languageSettings': 'Spracheinstellungen',
+                'aboutUs': 'Über Uns',
+                'aboutText1': 'Dieses Projekt ist ein Abschlussprojekt für herausragende Studenten, die innovative technische Lösungen anbieten möchten, die den Bedürfnissen der Nutzer im digitalen Zeitalter entsprechen.',
+                'aboutText2': 'Diese Website wurde mit den neuesten Technologien und höchsten Qualitätsstandards entwickelt und vereint fortschrittliche Funktionalität mit einem reibungslosen Benutzererlebnis.',
+                'aboutText3': 'Wir sind stolz darauf, eine einzigartige Lösung geschaffen zu haben, die Einfachheit und Leistung kombiniert und sich auf alle Details konzentriert, die das Benutzererlebnis unvergesslich machen.',
+                'saveButton': 'Einstellungen speichern',
+                'sayedTitle': 'Frontend-Entwickler und UX-Experte',
+                'rawanTitle': 'UI-Designer und Benutzererlebnis-Spezialist',
+                'saveSuccess': 'Einstellungen erfolgreich gespeichert!'
+            }
+        };
+
+        // Function to update all translatable elements
+        function updateTranslations(lang) {
+            const translation = translations[lang] || translations['en'];
+            document.documentElement.lang = lang;
+            
+            // Update all elements with data-translate attribute
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+        }
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved settings from localStorage
+            const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+            const savedDir = localStorage.getItem('pageDirection') || 'ltr';
+            
+            // Apply saved settings
+            document.documentElement.dir = savedDir;
+            updateTranslations(savedLang);
+            
+            // Mark the selected language
+            document.querySelectorAll('.language-option').forEach(option => {
+                if (option.dataset.lang === savedLang) {
+                    option.classList.add('active');
+                }
+                
+                // Add click event
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.language-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+            
+            // Save settings event
+            document.getElementById('saveSettings').addEventListener('click', function() {
+                const selectedOption = document.querySelector('.language-option.active');
+                const lang = selectedOption.dataset.lang;
+                const dir = selectedOption.dataset.dir;
+                
+                // Save to localStorage
+                localStorage.setItem('selectedLanguage', lang);
+                localStorage.setItem('pageDirection', dir);
+                
+                // Apply changes
+                document.documentElement.dir = dir;
+                updateTranslations(lang);
+                
+                // Add change animation
+                document.body.classList.add('language-changed');
+                setTimeout(() => {
+                    document.body.classList.remove('language-changed');
+                }, 500);
+                
+                // Show translated confirmation message
+                alert(translations[lang].saveSuccess || 'Settings saved successfully!');
+                
+                // Reload to apply RTL/LTR changes fully
+                setTimeout(() => location.reload(), 300);
+            });
+            
+            // Animate language buttons on load
+            setTimeout(() => {
+                document.querySelectorAll('.language-option').forEach((option, index) => {
+                    setTimeout(() => {
+                        option.style.opacity = '1';
+                        option.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }, 500);
+        });
+        // في صفحة الإعدادات، بعد حفظ اللغة
+        const langEvent = new CustomEvent('languageChanged', { detail: { lang: lang } });
+        window.opener.dispatchEvent(langEvent);
+    </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+.button-animation {
+  border-radius: 10px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  background-size: 300% 100%;
+  moz-transition: all .5s ease-in-out;
+  -o-transition: all .5s ease-in-out;
+  -webkit-transition: all .5s ease-in-out;
+  transition: all .5s ease-in-out;
+}
+.button-animation:hover {
+  background-position: 100% 0;
+  moz-transition: all .5s ease-in-out;
+  -o-transition: all .5s ease-in-out;
+  -webkit-transition: all .5s ease-in-out;
+  transition: all .5s ease-in-out;
+}
+.button-animation:focus {
+  outline: none;
+}
+.button-animation {
+  background-image: linear-gradient(to right, #002850d9, #760f01d9, #2b0500, #011c38);
+}
+
+.button-animation2 {
+  border-radius: 10px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  background-size: 300% 100%;
+  moz-transition: all .5s ease-in-out;
+  -o-transition: all .5s ease-in-out;
+  -webkit-transition: all .5s ease-in-out;
+  transition: all .5s ease-in-out;
+}
+.button-animation2:hover {
+  background-position: 100% 0;
+  moz-transition: all .5s ease-in-out;
+  -o-transition: all .5s ease-in-out;
+  -webkit-transition: all .5s ease-in-out;
+  transition: all .5s ease-in-out;
+}
+.button-animation2:focus {
+  outline: none;
+}
+.button-animation2 {
+  background-image: linear-gradient(to right, #760f01ab, #760f01ab, #f87a69, #760f01);
+}

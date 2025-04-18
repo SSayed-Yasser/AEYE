@@ -1,0 +1,52 @@
+<html lang="en">
+<head>
+  <title>Orders</title> <!-- web name -->
+  <LInk rel="icon" href="./image/logos/logo-02.png" type="image/x-icon"> <!-- web icon -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./css-files/body-html.css"> <!-- css file loc -->
+  <link rel="stylesheet" href="./css-files/index-css/header.css"> <!-- css file loc -->
+  <link rel="stylesheet" href="./css-files/orders-css/orders.css"> <!-- css file loc -->
+  <script type="module" src="./js-filse/orders-js/order.js"></script>
+</head>
+<body>
+  <!-- header -->
+  <div class="header" id="header">
+    <div class="logo">
+      <h5 class="header-logo-h5">AEYE</h5>
+    </div>
+    <div class="main-header">
+      <a id="all-glasses-header" href="index.html#new-sec" class="aa">Home</a>
+      <a id="all-glasses-header" href="index.html#new-sec" class="aa">Shop</a>
+      <a id="all-glasses-header" href="index.html#new-sec" class="aa">Cart</a>
+    </div>
+    <div class="login-button-home">
+      <div class="bage-center" onclick="window.location.href = './checkout.html';" style="margin-right: 10;">
+        <img src="./image/icons/bag.png" alt="" class="header-cart" onclick="">
+        <p class="quantity" id="cart-count">2</p>
+      </div>
+      <a href="orders.html">
+        <img src="./image/icons/delivery-truck.png" alt="" class="img-header-login" style="width: 35px; height: 33px;">
+      </a>
+      <a href="login.html" id="adduser">
+      <img src="./image/icons/add-user.png" alt="" class="img-header-login">
+      </a>
+      <a href="account.html" id="user" style="display: none;">
+        <img src="./image/icons/user.png" alt="" class="img-header-login">
+      </a>
+      <script>
+        if (localStorage.getItem('loginmethod') === '555') {
+          document.getElementById('adduser').style.display = 'none';
+          document.getElementById('user').style.display = 'block';
+        }
+      </script>
+    </div>
+  </div>
+  <!-- header -->
+  <main class="orders-container">
+    <div id="orders-list">
+      <!-- يتم إضافة الطلبات هنا -->
+    </div>
+  </main>
+</body>
+</html>
