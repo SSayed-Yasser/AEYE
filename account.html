@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <title>Account</title> <!-- web name -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">  <!-- onlin icons -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./css-files/index-css/header.css"> <!-- css file loc -->
+  <link rel="stylesheet" href="./css-files/account-css/account.css">
+  <link rel="stylesheet" href="./css-files/body-html.css"> <!-- css file loc -->
+  <script type="module" src="./js-filse/account-js/account.js"></script>
+</head>
+<body>
+  <!-- header -->
+  <div class="header" id="header">
+    <div class="logo">
+      <h5 class="header-logo-h5">AEYE</h5>
+    </div>
+    <div class="main-header">
+      <a id="all-glasses-header" href="index.html" class="aa" onclick="allHeader()">Home</a>
+      <a id="all-glasses-header" href="admin.html" class="aa" onclick="allHeader()">Admin</a>
+    </div>
+    <div class="login-button-home">
+      <div class="bage-center" onclick="window.location.href = './checkout.html';" style="margin-right: 10;">
+        <img src="./image/icons/bag.png" alt="" class="header-cart" onclick="">
+        <p class="quantity" id="cart-count">2</p>
+      </div>
+      <a href="orders.html">
+        <img src="./image/icons/delivery-truck.png" alt="" class="img-header-login" style="width: 35px; height: 33px;">
+      </a>
+      <a href="login.html" id="adduser">
+      <img src="./image/icons/add-user.png" alt="" class="img-header-login">
+      </a>
+      <a href="account.html" id="user" style="display: none;">
+        <img src="./image/icons/user.png" alt="" class="img-header-login">
+      </a>
+      <script>
+        if (localStorage.getItem('loginmethod') === '555') {
+          document.getElementById('adduser').style.display = 'none';
+          document.getElementById('user').style.display = 'block';
+        }
+      </script>
+    </div>
+  </div>
+  <!-- header -->
+  <div class="account-container">
+    <h2>User Account</h2>
+    <div class="user-info">
+        <label for="email">Email:</label>
+        <p class="pppp" id="email"></p>
+
+        <label for="password">Password:</label>
+        <p class="pppp" id="password"></p>
+
+        <label for="phone">Phone Number:</label>
+        <p class="pppp" id="phone"></p>
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" value="" placeholder="Enter name">
+
+        <label for="address">Address:</label>
+        <input type="text" id="address" value="" placeholder="Enter address">
+    </div>
+    <h3>Glasses Measurements</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Eye</th>
+                <th>Sphere</th>
+                <th>Cylinder</th>
+                <th>Axis</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Right (OD)</td>
+                <td id="odSp"></td>
+                <td id="odCy"></td>
+                <td id="odAx"></td>
+            </tr>
+            <tr>
+                <td>Left (OS)</td>
+                <td id="osSp"></td>
+                <td id="osCy"></td>
+                <td id="osAx"></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="buttons">
+        <button class="button save-btn" id="saveChangesButton">Save Changes</button>
+        <button class="button logout-btn" id="logoutButton">Logout</button>
+        <button class="button delete-btn" id="deleteAccountButton">Delete Account</button>
+    </div>
+</div>
+</body>
+</html>
