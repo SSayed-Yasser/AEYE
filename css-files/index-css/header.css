@@ -141,13 +141,13 @@
 }
 @media (max-width: 900px) {
   .header {
-    height: 55px;
+    height: 60px;
   }
   .main-header {
     width: 70%;
   }
   .logo {
-    width: 12%;
+    width: 10%;
     margin-right: 0%;
   }
   .aa {
@@ -192,7 +192,7 @@
     margin-right: -5%;
   }
   .aa {
-    font-size: 70%;
+    font-size: 60%;
   }
   .cart-header {
     width: 10%;

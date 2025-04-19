@@ -203,6 +203,7 @@ updateCartCount();
 
 // Admin credentials
 const adminEmail = "sayedyassersy1@gmail.com";
+const adminEmail1 = "rawanahmedd30@gmail.com";
 
 function checkAdminAccess() {
   const userData = JSON.parse(localStorage.getItem('userData'));
@@ -224,7 +225,20 @@ function checkAdminAccess() {
     loadOrders(); 
     loadUsers();
   } else {
-    showErrorMessage("You are not an admin.");
+    if (userData.email === adminEmail1) {
+      document.getElementById("error-message").classList.add("hidden");
+      document.getElementById("error-message1").classList.add("hidden");
+      document.getElementById("error-message2").classList.add("hidden");
+      document.getElementById("error-message3").classList.add("hidden");
+      document.getElementById("admin-container").classList.remove("hidden");
+      document.getElementById("admin-container1").classList.remove("hidden");
+      document.getElementById("product-continar").classList.remove("hidden");
+      document.getElementById("items-continar").classList.remove("hidden");
+      loadOrders(); 
+      loadUsers();
+    } else {
+      showErrorMessage("You are not an admin.");
+    }
   }
 }
 
