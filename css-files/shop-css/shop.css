@@ -11,15 +11,15 @@
 @media (max-width: 2000px) {
   .all-glasses-containar {
       grid-template-columns: repeat(4, 1fr);
-      width: 100%;
+      width: 95%;
       margin-left: 2.5%;
       margin-right: 2.5%;
   }
 }
 @media (max-width: 1550px) {
   .all-glasses-containar {
-      grid-template-columns: repeat(3, 1fr);
-      width: 100%;
+      grid-template-columns: repeat(4, 1fr);
+      width: 99%;
       margin-left: 2.5%;
       margin-right: 2.5%;
   }

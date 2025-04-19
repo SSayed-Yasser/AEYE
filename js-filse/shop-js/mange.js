@@ -130,7 +130,7 @@ function displayAccessoriesProducts() {
       	<div class="div-accs" style="background-image: url(${product.img});">
           <div class="back-filter">
             <h3 class="accs-h4">${product.name}</h3>
-              <p class="discription">${product.discr}<p class="discription1">one year warranty</p></p>
+              <p class="discription">${product.productDesc}<p class="discription1">one year warranty</p></p>
               <div class="sale-div12">
                 <h6 class="sale-h6">Sale</h6>
                 <h6 class="sale-h6">${product.sale}%</h6>
