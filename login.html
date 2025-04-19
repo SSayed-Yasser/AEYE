@@ -224,16 +224,18 @@
             </div>
             
             <!-- Camera Modal -->
-            <div id="cameraModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center;">
-              <div style="width: 90%; max-width: 500px; background: white; padding: 20px; border-radius: 10px;">
-                <h2 id="modalTitle">Capture Prescription</h2>
-                <video id="cameraFeed" autoplay playsinline style="width: 100%; height: auto; background: black;"></video>
-                <canvas id="photoCanvas" style="display: none;"></canvas>
-                <div style="display: flex; justify-content: center; margin-top: 15px;">
-                  <button id="flashBtn" onclick="toggleFlash()" style="padding: 10px 20px; background: #555; color: white; border: none; border-radius: 5px; margin: 0 10px;">Flash OFF</button>
-                  <button id="captureBtn" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; margin: 0 10px;">Capture</button>
-                  <button onclick="closeCamera()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 5px; margin: 0 10px;">Cancel</button>
-                </div>
+            <div id="cameraModal">
+              <div>
+                  <h2 id="modalTitle">التقاط صورة الوصفة الطبية</h2>
+                  <video id="cameraFeed" autoplay playsinline style="width: 100%; height: auto; background: black;"></video>
+                  <canvas id="photoCanvas" style="display: none;"></canvas>
+                  <div style="display: flex; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+                      <button id="switchCameraBtn" class="camera-control-btn" onclick="switchCamera()">تبديل الكاميرا</button>
+                      <button id="flashBtn" class="camera-control-btn" onclick="toggleFlash()">إضاءة OFF</button>
+                      <button id="lensBtn" class="camera-control-btn" onclick="switchLens()">العدسة الأساسية</button>
+                      <button id="captureBtn" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; margin: 0 10px;">التقاط</button>
+                      <button onclick="closeCamera()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 5px; margin: 0 10px;">إلغاء</button>
+                  </div>
               </div>
             </div>
             
@@ -245,6 +247,119 @@
                 let autoScanTimeout = null;
                 let currentMode = '';
                 let flashEnabled = false;
+                let currentCamera = 'environment'; // 'environment' للخلفية، 'user' للأمامية
+                let currentLens = 'default'; // 'default' للعدسة الأساسية، 'ultrawide' للواسعة
+                
+                // ... (جميع الدوال السابقة تبقى كما هي ما عدا الدوال المتعلقة بالكاميرا) ...
+                
+                // فتح الكاميرا مع التحسينات الجديدة
+                async function openCamera(mode) {
+                    currentMode = mode;
+                    isAutoScan = mode === 'scan';
+                    document.getElementById('modalTitle').textContent = mode === 'scan' ? 'المسح التلقائي للوصفة الطبية' : 'التقاط صورة الوصفة الطبية';
+                    document.getElementById('cameraModal').style.display = 'flex';
+                    
+                    try {
+                        await initCamera();
+                        
+                        if (isAutoScan) {
+                            document.getElementById('captureBtn').style.display = 'none';
+                            autoScanTimeout = setTimeout(() => {
+                                captureImage();
+                            }, 3000);
+                        } else {
+                            document.getElementById('captureBtn').style.display = 'block';
+                            document.getElementById('captureBtn').onclick = captureImage;
+                        }
+                    } catch (err) {
+                        console.error('Camera error:', err);
+                        alert('تعذر الوصول إلى الكاميرا. يرجى التحقق من الأذونات.');
+                        closeCamera();
+                    }
+                }
+                
+                // تهيئة الكاميرا مع الخيارات الجديدة
+                async function initCamera() {
+                    closeCamera(); // إغلاق أي كاميرا نشطة
+                    
+                    const constraints = { 
+                        video: { 
+                            facingMode: currentCamera,
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            advanced: []
+                        }, 
+                        audio: false 
+                    };
+                    
+                    // إضافة اختيار العدسة إذا كان متاحاً
+                    if (currentLens === 'default') {
+                        constraints.video.advanced.push({ zoom: 1.0 });
+                    } else if (currentLens === 'ultrawide') {
+                        constraints.video.advanced.push({ zoom: 0.5 });
+                    }
+                    
+                    // تفعيل الفلاش إذا كان مفعلاً
+                    if (flashEnabled && 'torch' in navigator.mediaDevices.getSupportedConstraints()) {
+                        constraints.video.torch = true;
+                    }
+                    
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    const video = document.getElementById('cameraFeed');
+                    video.srcObject = stream;
+                    
+                    // تحديث واجهة المستخدم بناء على حالة الفلاش
+                    updateFlashUI();
+                }
+                
+                // تبديل بين الكاميرا الأمامية والخلفية
+                async function switchCamera() {
+                    currentCamera = currentCamera === 'environment' ? 'user' : 'environment';
+                    await initCamera();
+                }
+                
+                // تبديل بين العدسات (الأساسية والواسعة)
+                async function switchLens() {
+                    currentLens = currentLens === 'default' ? 'ultrawide' : 'default';
+                    document.getElementById('lensBtn').textContent = currentLens === 'default' ? 'العدسة الأساسية' : 'العدسة الواسعة';
+                    await initCamera();
+                }
+                
+                // تفعيل/إيقاف الفلاش (محسّن)
+                async function toggleFlash() {
+                    if (!stream) return;
+                    
+                    try {
+                        const videoTrack = stream.getVideoTracks()[0];
+                        if (videoTrack && 'torch' in videoTrack.getCapabilities()) {
+                            flashEnabled = !flashEnabled;
+                            await videoTrack.applyConstraints({
+                                advanced: [{torch: flashEnabled}]
+                            });
+                            updateFlashUI();
+                            return true;
+                        } else {
+                            // إذا لم يكن الفلاش مدعوماً، نعرض رسالة للمستخدم
+                            alert('الفلاش غير متاح في هذا الجهاز أو الكاميرا الحالية');
+                            return false;
+                        }
+                    } catch (err) {
+                        console.error('Flash error:', err);
+                        alert('حدث خطأ أثناء محاولة تفعيل الفلاش');
+                        return false;
+                    }
+                }
+                
+                // تحديث واجهة مستخدم الفلاش
+                function updateFlashUI() {
+                    const flashBtn = document.getElementById('flashBtn');
+                    if (stream && stream.getVideoTracks()[0] && 'torch' in stream.getVideoTracks()[0].getCapabilities()) {
+                        flashBtn.style.display = 'inline-block';
+                        flashBtn.textContent = flashEnabled ? 'إضاءة ON' : 'إضاءة OFF';
+                    } else {
+                        flashBtn.style.display = 'none';
+                    }
+                }
                 
                 // تهيئة النموذج بالقيم المحفوظة
                 window.addEventListener('DOMContentLoaded', () => {
