@@ -228,636 +228,661 @@
               <div style="width: 90%; max-width: 500px; background: white; padding: 20px; border-radius: 10px;">
                 <h2 id="modalTitle">Capture Prescription</h2>
                 
-                <!-- إضافة قائمة اختيار الكاميرات -->
-                <div id="cameraSelectContainer" style="margin-bottom: 10px; display: none;">
-                  <label for="cameraSelect">Select Camera: </label>
-                  <select id="cameraSelect" style="padding: 5px; border-radius: 4px;"></select>
+                <!-- Camera Selection and Info -->
+                <div id="cameraControls" style="margin-bottom: 10px;">
+                  <div id="cameraInfo" style="padding: 10px; background: #f5f5f5; border-radius: 5px; margin-bottom: 10px; display: none;">
+                    <h4 style="margin-top: 0;">Available Cameras:</h4>
+                    <div id="camerasList" style="max-height: 100px; overflow-y: auto;"></div>
+                  </div>
+                  
+                  <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button id="switchCameraBtn" class="camera-control-btn" style="display: none;">
+                      <i class="fas fa-sync-alt"></i> Switch Camera
+                    </button>
+                    <button id="flashBtn" class="camera-control-btn" style="display: none;">
+                      <i class="fas fa-bolt"></i> Flash OFF
+                    </button>
+                  </div>
                 </div>
                 
+                <!-- Error Message Display -->
+                <div id="cameraError" style="color: red; margin: 10px 0; display: none;"></div>
+                
+                <!-- Camera Feed -->
                 <video id="cameraFeed" autoplay playsinline style="width: 100%; height: auto; background: black;"></video>
                 <canvas id="photoCanvas" style="display: none;"></canvas>
-                <div style="display: flex; justify-content: center; margin-top: 15px;">
-                  <button id="captureBtn" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; margin: 0 10px;">Capture</button>
-                  <button id="switchCameraBtn" style="padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 5px; margin: 0 10px;">Switch Camera</button>
-                  <button id="flashBtn" style="padding: 10px 20px; background: #FF9800; color: white; border: none; border-radius: 5px; margin: 0 10px;">Flash OFF</button>
-                  <button onclick="closeCamera()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 5px; margin: 0 10px;">Cancel</button>
+                
+                <!-- Action Buttons -->
+                <div style="display: flex; justify-content: center; margin-top: 15px; gap: 10px;">
+                  <button id="captureBtn" class="action-btn" style="background: #4CAF50; display: none;">
+                    <i class="fas fa-camera"></i> Capture
+                  </button>
+                  <button onclick="closeCamera()" class="action-btn" style="background: #f44336;">
+                    <i class="fas fa-times"></i> Cancel
+                  </button>
                 </div>
               </div>
             </div>
+
+            <!-- Add Font Awesome for icons -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
             
             <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
             <script>
-                // متغيرات عامة
-                let stream = null;
-                let isAutoScan = false;
-                let autoScanTimeout = null;
-                let currentMode = '';
-                let flashEnabled = false;
-                let currentCameraId = '';
-                let cameras = [];
-                
-                // تهيئة النموذج بالقيم المحفوظة
-                window.addEventListener('DOMContentLoaded', () => {
-                    const fields = ['odSp', 'odCy', 'odAx', 'osSp', 'osCy', 'osAx'];
-                    fields.forEach(field => {
-                        const savedValue = localStorage.getItem(field);
-                        if (savedValue) {
-                            document.getElementById(field).value = savedValue;
-                        }
-                    });
+            // Global variables
+            let stream = null;
+            let isAutoScan = false;
+            let autoScanTimeout = null;
+            let currentMode = '';
+            let flashEnabled = false;
+            let currentCameraId = '';
+            let cameras = [];
+            let facingMode = 'environment'; // Default to rear camera
+
+            // Initialize form with saved values
+            window.addEventListener('DOMContentLoaded', () => {
+                const fields = ['odSp', 'odCy', 'odAx', 'osSp', 'osCy', 'osAx'];
+                fields.forEach(field => {
+                    const savedValue = localStorage.getItem(field);
+                    if (savedValue) {
+                        document.getElementById(field).value = savedValue;
+                    }
                 });
-            
-                // دالة للحصول على قائمة الكاميرات المتاحة
-                async function getAvailableCameras() {
-                    try {
-                        // الحصول على أجهزة الوسائط
-                        const devices = await navigator.mediaDevices.enumerateDevices();
-                        
-                        // تصفية أجهزة الفيديو فقط
-                        cameras = devices.filter(device => device.kind === 'videoinput');
-                        
-                        // إذا كان هناك أكثر من كاميرا، نعرض قائمة الاختيار
-                        if (cameras.length > 1) {
-                            const cameraSelect = document.getElementById('cameraSelect');
-                            cameraSelect.innerHTML = '';
-                            
-                            cameras.forEach((camera, index) => {
-                                const option = document.createElement('option');
-                                option.value = camera.deviceId;
-                                option.text = camera.label || `Camera ${index + 1}`;
-                                cameraSelect.appendChild(option);
-                            });
-                            
-                            document.getElementById('cameraSelectContainer').style.display = 'block';
-                        } else {
-                            document.getElementById('cameraSelectContainer').style.display = 'none';
-                        }
-                        
-                        return cameras;
-                    } catch (err) {
-                        console.error('Error enumerating cameras:', err);
+                
+                // Check for camera support
+                checkCameraSupport();
+            });
+
+            // Check if browser supports camera access
+            function checkCameraSupport() {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showCameraError('Camera access not supported in this browser.');
+                    return false;
+                }
+                return true;
+            }
+
+            // Get list of available cameras with details
+            async function getAvailableCameras() {
+                try {
+                    // First request camera access to get full device info
+                    await navigator.mediaDevices.getUserMedia({ video: true });
+                    
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    cameras = devices.filter(device => device.kind === 'videoinput');
+                    
+                    const camerasList = document.getElementById('camerasList');
+                    camerasList.innerHTML = '';
+                    
+                    if (cameras.length === 0) {
+                        camerasList.innerHTML = '<p>No cameras found on this device.</p>';
                         return [];
                     }
+                    
+                    cameras.forEach((camera, index) => {
+                        const cameraDiv = document.createElement('div');
+                        cameraDiv.style.padding = '5px';
+                        cameraDiv.style.borderBottom = '1px solid #ddd';
+                        
+                        // Try to determine camera type
+                        let cameraType = 'Unknown';
+                        if (camera.label.toLowerCase().includes('back') || camera.label.toLowerCase().includes('rear')) {
+                            cameraType = 'Rear Camera';
+                            facingMode = 'environment';
+                        } else if (camera.label.toLowerCase().includes('front') || camera.label.toLowerCase().includes('face')) {
+                            cameraType = 'Front Camera';
+                            facingMode = 'user';
+                        }
+                        
+                        cameraDiv.innerHTML = `
+                            <strong>Camera ${index + 1}:</strong> ${camera.label || 'Unnamed Camera'}<br>
+                            <small>Type: ${cameraType}</small>
+                        `;
+                        camerasList.appendChild(cameraDiv);
+                    });
+                    
+                    document.getElementById('cameraInfo').style.display = 'block';
+                    return cameras;
+                } catch (err) {
+                    console.error('Error enumerating cameras:', err);
+                    showCameraError('Failed to access camera devices. Please ensure camera permissions are granted.');
+                    return [];
+                }
+            }
+
+            // Start camera with specific constraints
+            async function startCamera(deviceId = null) {
+                closeCurrentStream();
+                
+                const errorElement = document.getElementById('cameraError');
+                errorElement.style.display = 'none';
+                
+                try {
+                    const constraints = {
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            ...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode })
+                        },
+                        audio: false
+                    };
+                    
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    const video = document.getElementById('cameraFeed');
+                    video.srcObject = stream;
+                    
+                    // Get current camera ID
+                    const videoTrack = stream.getVideoTracks()[0];
+                    if (videoTrack) {
+                        currentCameraId = videoTrack.getSettings().deviceId;
+                    }
+                    
+                    // Show capture button
+                    document.getElementById('captureBtn').style.display = 'inline-block';
+                    
+                    // Update camera controls
+                    updateCameraControls();
+                    
+                    return true;
+                } catch (err) {
+                    console.error('Camera start error:', err);
+                    let errorMsg = 'Could not access the camera.';
+                    
+                    if (err.name === 'NotAllowedError') {
+                        errorMsg = 'Camera permission denied. Please allow camera access.';
+                    } else if (err.name === 'NotFoundError') {
+                        errorMsg = 'No camera found on this device.';
+                    } else if (err.name === 'OverconstrainedError') {
+                        errorMsg = 'Camera constraints could not be satisfied.';
+                    }
+                    
+                    showCameraError(errorMsg);
+                    return false;
+                }
+            }
+
+            // Switch between front and back cameras
+            async function switchCamera() {
+                if (cameras.length < 2) {
+                    showCameraError('Only one camera available on this device.');
+                    return;
                 }
                 
-                // دالة لتبديل الكاميرا
-                async function switchCamera() {
-                    if (cameras.length < 2) return;
-                    
-                    const cameraSelect = document.getElementById('cameraSelect');
-                    const currentIndex = cameras.findIndex(cam => cam.deviceId === currentCameraId);
-                    const nextIndex = (currentIndex + 1) % cameras.length;
-                    const nextCameraId = cameras[nextIndex].deviceId;
-                    
-                    cameraSelect.value = nextCameraId;
-                    await startCamera(nextCameraId);
-                }
-            
-                // فتح الكاميرا مع تحديد الكاميرا المطلوبة
-                async function startCamera(deviceId = '') {
-                    // إيقاف الكاميرا الحالية إذا كانت تعمل
-                    if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
-                    }
-                    
-                    try {
-                        const constraints = { 
-                            video: { 
-                                deviceId: deviceId ? { exact: deviceId } : undefined,
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 },
-                                facingMode: deviceId ? undefined : 'environment'
-                            }, 
-                            audio: false 
-                        };
-                        
-                        // تفعيل الفلاش إذا كان متاحاً ومفعل
-                        if (flashEnabled && 'torch' in navigator.mediaDevices.getSupportedConstraints()) {
-                            constraints.video.torch = true;
-                        }
-                        
-                        stream = await navigator.mediaDevices.getUserMedia(constraints);
-                        const video = document.getElementById('cameraFeed');
-                        video.srcObject = stream;
-                        
-                        // حفظ معرف الكاميرا الحالية
-                        const videoTrack = stream.getVideoTracks()[0];
-                        if (videoTrack) {
-                            currentCameraId = videoTrack.getSettings().deviceId;
-                        }
-                        
-                        // تحديث زر الفلاش بناء على إمكانيات الكاميرا
-                        updateFlashButton();
-                        
-                    } catch (err) {
-                        console.error('Camera error:', err);
-                        alert('Could not access camera. Please check permissions.');
-                        closeCamera();
-                    }
-                }
-            
-                // تحديث حالة زر الفلاش
-                function updateFlashButton() {
-                    if (!stream) return;
-                    
-                    const videoTrack = stream.getVideoTracks()[0];
-                    const flashBtn = document.getElementById('flashBtn');
-                    
-                    if (videoTrack && 'torch' in videoTrack.getCapabilities()) {
-                        flashBtn.style.display = 'block';
-                        flashBtn.textContent = flashEnabled ? 'Flash ON' : 'Flash OFF';
-                    } else {
-                        flashBtn.style.display = 'none';
-                        flashEnabled = false;
-                    }
-                }
-            
-                // فتح الكاميرا للتقاط أو مسح
-                async function openCamera(mode) {
-                    currentMode = mode;
-                    isAutoScan = mode === 'scan';
-                    document.getElementById('modalTitle').textContent = mode === 'scan' ? 'Auto Scanning Prescription' : 'Capture Prescription';
-                    document.getElementById('cameraModal').style.display = 'flex';
-                    
-                    // الحصول على الكاميرات المتاحة
-                    await getAvailableCameras();
-                    
-                    // بدء الكاميرا
+                // Toggle between front and back
+                facingMode = facingMode === 'user' ? 'environment' : 'user';
+                
+                // Find a camera matching the new facing mode
+                const newCamera = cameras.find(cam => {
+                    const label = cam.label.toLowerCase();
+                    return (facingMode === 'environment' && (label.includes('back') || label.includes('rear'))) ||
+                          (facingMode === 'user' && (label.includes('front') || label.includes('face')));
+                });
+                
+                if (newCamera) {
+                    await startCamera(newCamera.deviceId);
+                } else {
+                    // Fallback to default behavior if no matching camera found
                     await startCamera();
+                }
+            }
+
+            // Toggle flash on/off
+            async function toggleFlash() {
+                if (!stream) return;
+                
+                try {
+                    const videoTrack = stream.getVideoTracks()[0];
+                    if (!videoTrack) return;
                     
-                    // إعداد الأزرار
+                    const capabilities = videoTrack.getCapabilities();
+                    if (!capabilities.torch) {
+                        showCameraError('Flash not supported on this camera.');
+                        return;
+                    }
+                    
+                    flashEnabled = !flashEnabled;
+                    await videoTrack.applyConstraints({
+                        advanced: [{ torch: flashEnabled }]
+                    });
+                    
+                    const flashBtn = document.getElementById('flashBtn');
+                    flashBtn.innerHTML = flashEnabled ? 
+                        '<i class="fas fa-bolt"></i> Flash ON' : 
+                        '<i class="fas fa-bolt"></i> Flash OFF';
+                    
+                    return true;
+                } catch (err) {
+                    console.error('Flash toggle error:', err);
+                    showCameraError('Failed to toggle flash.');
+                    return false;
+                }
+            }
+
+            // Update camera control buttons based on capabilities
+            function updateCameraControls() {
+                if (!stream) return;
+                
+                const videoTrack = stream.getVideoTracks()[0];
+                if (!videoTrack) return;
+                
+                // Show/hide switch button based on available cameras
+                const switchBtn = document.getElementById('switchCameraBtn');
+                switchBtn.style.display = cameras.length > 1 ? 'inline-block' : 'none';
+                
+                // Show/hide flash button based on capabilities
+                const flashBtn = document.getElementById('flashBtn');
+                const capabilities = videoTrack.getCapabilities();
+                flashBtn.style.display = capabilities.torch ? 'inline-block' : 'none';
+            }
+
+            // Display camera error message
+            function showCameraError(message) {
+                const errorElement = document.getElementById('cameraError');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+
+            // Close current camera stream
+            function closeCurrentStream() {
+                if (stream) {
+                    stream.getTracks().forEach(track => {
+                        track.stop();
+                    });
+                    stream = null;
+                }
+            }
+
+            // Open camera for capture or scan
+            async function openCamera(mode) {
+                if (!checkCameraSupport()) {
+                    showCameraError('Camera access not supported in this browser.');
+                    return;
+                }
+                
+                currentMode = mode;
+                isAutoScan = mode === 'scan';
+                document.getElementById('modalTitle').textContent = 
+                    mode === 'scan' ? 'Auto Scanning Prescription' : 'Capture Prescription';
+                document.getElementById('cameraModal').style.display = 'flex';
+                
+                // Get available cameras
+                await getAvailableCameras();
+                
+                // Start default camera
+                const started = await startCamera();
+                
+                if (started) {
                     if (isAutoScan) {
                         document.getElementById('captureBtn').style.display = 'none';
                         autoScanTimeout = setTimeout(() => {
                             captureImage();
-                        }, 3000); // تأخير 3 ثواني للمسح التلقائي
+                        }, 3000);
                     } else {
-                        document.getElementById('captureBtn').style.display = 'block';
-                        document.getElementById('captureBtn').onclick = captureImage;
+                        document.getElementById('captureBtn').style.display = 'inline-block';
                     }
                     
-                    // إعداد زر تبديل الكاميرا
+                    // Set up control buttons
                     document.getElementById('switchCameraBtn').onclick = switchCamera;
-                    
-                    // إعداد زر الفلاش
                     document.getElementById('flashBtn').onclick = toggleFlash;
-                    
-                    // إعداد اختيار الكاميرا من القائمة
-                    document.getElementById('cameraSelect').onchange = async function() {
-                        await startCamera(this.value);
-                    };
+                    document.getElementById('captureBtn').onclick = captureImage;
                 }
-            
-                // تفعيل/إيقاف الفلاش
-                async function toggleFlash() {
-                    if (!stream) return;
-                    
-                    try {
-                        const videoTrack = stream.getVideoTracks()[0];
-                        if (videoTrack && 'torch' in videoTrack.getCapabilities()) {
-                            flashEnabled = !flashEnabled;
-                            await videoTrack.applyConstraints({
-                                advanced: [{torch: flashEnabled}]
-                            });
-                            document.getElementById('flashBtn').textContent = flashEnabled ? 'Flash ON' : 'Flash OFF';
-                            return true;
-                        }
-                    } catch (err) {
-                        console.error('Flash error:', err);
-                    }
-                    return false;
-                }
-            
-                // بقية الدوال كما هي (performOCR, preprocessPrescriptionImage, parsePrescription, formatNumber, 
-                // handleImageUpload, startAutoScan, captureImage, enhancePrescriptionImage, closeCamera,
-                // validateAndContinue, isValidPrescriptionValue)
+            }
 
-                // تحسين دقة استخراج النص لمقاسات النظارات فقط
-                async function performOCR(imageData) {
-                    const loadingElement = document.getElementById('loading');
-                    const progressBar = document.getElementById('progressBar');
-                    const progressPercent = document.getElementById('progressPercent');
-                    const outputElement = document.getElementById('output');
-                    
-                    loadingElement.style.display = 'block';
-                    progressBar.value = 0;
-                    outputElement.textContent = 'Processing image...';
-                    
-                    try {
-                        // معالجة مسبقة للصورة لتحسين دقة OCR
-                        const processedImage = await preprocessPrescriptionImage(imageData);
-                        
-                        const { data: { text, progress } } = await Tesseract.recognize(
-                            processedImage,
-                            'eng',
-                            {
-                                logger: m => {
-                                    progressBar.value = m.progress * 100;
-                                    progressPercent.textContent = Math.round(m.progress * 100);
-                                    if (m.status) outputElement.textContent = m.status;
-                                },
-                                tessedit_char_whitelist: '0123456789+-.ODOSRLEAXISPHCYLAXSPHEREYRIGHTLEFT',
-                                preserve_interword_spaces: '1',
-                                tessedit_pageseg_mode: '6'
-                            }
-                        );
-                        
-                        outputElement.textContent = text;
-                        parsePrescription(text);
-                    } catch (error) {
-                        console.error('Error in OCR:', error);
-                        outputElement.textContent = 'Error processing image. Please try again or enter data manually.';
-                    } finally {
-                        loadingElement.style.display = 'none';
-                    }
-                }
+            // Capture image from camera
+            function captureImage() {
+                const video = document.getElementById('cameraFeed');
+                const canvas = document.getElementById('photoCanvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Enhance image before processing
+                const imageData = enhancePrescriptionImage(canvas);
+                
+                closeCamera();
+                performOCR(imageData);
+            }
 
-                // معالجة مخصصة لصور وصفات النظارات
-                async function preprocessPrescriptionImage(imageData) {
-                    return new Promise((resolve) => {
-                        const img = new Image();
-                        img.onload = function() {
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            
-                            // تحديد أبعاد جديدة للصورة مع الحفاظ على التناسب
-                            const maxWidth = 1000;
-                            const maxHeight = 1000;
-                            let width = img.width;
-                            let height = img.height;
-                            
-                            if (width > maxWidth) {
-                                height = (maxWidth / width) * height;
-                                width = maxWidth;
-                            }
-                            
-                            if (height > maxHeight) {
-                                width = (maxHeight / height) * width;
-                                height = maxHeight;
-                            }
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            
-                            // رسم الصورة مع تحسين التباين
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
-                            // تحسين الصورة للتركيز على النص
-                            const imageData = ctx.getImageData(0, 0, width, height);
-                            const data = imageData.data;
-                            
-                            // تحسين التباين والسطوع
-                            const contrast = 1.5; // زيادة التباين
-                            const brightness = 0; // تعديل السطوع
-                            
-                            for (let i = 0; i < data.length; i += 4) {
-                                // تحويل إلى تدرج رمادي
-                                const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-                                
-                                // تطبيق التباين والسطوع
-                                const adjusted = (gray - 128) * contrast + 128 + brightness;
-                                
-                                // تعيين القيم النهائية
-                                data[i] = data[i + 1] = data[i + 2] = adjusted < 0 ? 0 : adjusted > 255 ? 255 : adjusted;
-                                
-                                // زيادة حدة الحواف (اختياري)
-                                data[i] = data[i + 1] = data[i + 2] = data[i] > 180 ? 255 : data[i] < 50 ? 0 : data[i];
-                            }
-                            
-                            ctx.putImageData(imageData, 0, 0);
-                            
-                            // اقتصاص المناطق غير الضرورية (اختياري)
-                            // يمكن إضافة منطق لاقتصاص الصورة تلقائياً هنا
-                            
-                            resolve(canvas.toDataURL('image/jpeg'));
-                        };
-                        img.src = imageData;
-                    });
-                }
-
-                // تحليل نص القياسات الطبية بدقة أعلى
-                function parsePrescription(text) {
-                    // تنظيف النص وتحسينه للتحليل
-                    const normalizedText = text
-                        .replace(/[^a-zA-Z0-9\+\-\.\s]/g, ' ') // إزالة الأحرف الخاصة
-                        .replace(/\s+/g, ' ') // ضبط المسافات
-                        .toUpperCase();
-                    
-                    console.log("Normalized text:", normalizedText);
-
-                    // أنماط مخصصة لمقاسات النظارات فقط
-                    const patterns = [
-                        // النمط 1: OD/OS مع Sphere, Cylinder, Axis
-                        /(?:OD|RIGHT|RE)[^:\n]*:\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+).*?(?:OS|LEFT|LE)[^:\n]*:\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+)/i,
-                        
-                        // النمط 2: قيم Sphere, Cylinder, Axis لكل عين
-                        /(?:SPH|SPHERE)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:CYL|CYLINDER)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:AX|AXIS)[^\d\+-]*(\d+).*?(?:SPH|SPHERE)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:CYL|CYLINDER)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:AX|AXIS)[^\d\+-]*(\d+)/i,
-                        
-                        // النمط 3: قيم بالترتيب (OD ثم OS)
-                        /([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)\s+([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)/i,
-                        
-                        // النمط 4: مع تسميات لكل عين (بدون :)
-                        /(?:OD|RIGHT|RE)\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+).*?(?:OS|LEFT|LE)\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+)/i
-                    ];
-
-                    let matches = null;
-                    for (const pattern of patterns) {
-                        matches = normalizedText.match(pattern);
-                        if (matches) break;
-                    }
-
-                    if (matches && matches.length >= 7) {
-                        // تحديد أي العينين أولاً بناء على النمط
-                        const isOdFirst = normalizedText.indexOf('OD') > -1 || 
-                                        normalizedText.indexOf('RIGHT') > -1 || 
-                                        normalizedText.indexOf('RE') > -1 ||
-                                        (normalizedText.indexOf('OS') === -1 && 
-                                        normalizedText.indexOf('LEFT') === -1 && 
-                                        normalizedText.indexOf('LE') === -1);
-
-                        if (isOdFirst) {
-                            // العين اليمنى أولاً
-                            document.getElementById('odSp').value = formatNumber(matches[1]);
-                            document.getElementById('odCy').value = formatNumber(matches[2]);
-                            document.getElementById('odAx').value = formatNumber(matches[3], true);
-                            document.getElementById('osSp').value = formatNumber(matches[4]);
-                            document.getElementById('osCy').value = formatNumber(matches[5]);
-                            document.getElementById('osAx').value = formatNumber(matches[6], true);
-                        } else {
-                            // العين اليسرى أولاً
-                            document.getElementById('osSp').value = formatNumber(matches[1]);
-                            document.getElementById('osCy').value = formatNumber(matches[2]);
-                            document.getElementById('osAx').value = formatNumber(matches[3], true);
-                            document.getElementById('odSp').value = formatNumber(matches[4]);
-                            document.getElementById('odCy').value = formatNumber(matches[5]);
-                            document.getElementById('odAx').value = formatNumber(matches[6], true);
-                        }
-                        
-                        console.log("Matched values:", matches.slice(1, 7));
-                    } else {
-                        console.log("No matching pattern found");
-                        // طريقة احتياطية: البحث عن جميع الأرقام وتعيينها بالترتيب
-                        const numbers = normalizedText.match(/[+-]?\d+\.?\d*/g) || [];
-                        if (numbers.length >= 6) {
-                            document.getElementById('odSp').value = formatNumber(numbers[0]);
-                            document.getElementById('odCy').value = formatNumber(numbers[1]);
-                            document.getElementById('odAx').value = formatNumber(numbers[2], true);
-                            document.getElementById('osSp').value = formatNumber(numbers[3]);
-                            document.getElementById('osCy').value = formatNumber(numbers[4]);
-                            document.getElementById('osAx').value = formatNumber(numbers[5], true);
-                        } else {
-                            alert("Could not extract prescription data. Please enter manually.");
-                        }
-                    }
-                }
-
-                // تنسيق الأرقام بشكل صحيح لمقاسات النظارات
-                function formatNumber(value, isAxis = false) {
-                    if (!value) return '0';
-                    
-                    // إزالة أي أحرف غير رقمية
-                    let numStr = value.toString().replace(/[^0-9+-.]/g, '');
-                    
-                    // معالجة خاصة لمحور Axis
-                    if (isAxis) {
-                        let axisNum = parseFloat(numStr.replace(/[^0-9]/g, ''));
-                        axisNum = Math.max(0, Math.min(180, axisNum)); // التأكد من أن المحور بين 0 و180
-                        return axisNum.toString();
-                    }
-                    
-                    // التأكد من وجود علامة + أو -
-                    if (!['+', '-'].includes(numStr.charAt(0))) {
-                        numStr = '+' + numStr;
-                    }
-                    
-                    // التأكد من وجود منزلة عشرية
-                    if (!numStr.includes('.')) {
-                        numStr += '.00';
-                    } else if (numStr.split('.')[1].length < 2) {
-                        numStr = numStr.padEnd(numStr.indexOf('.') + 3, '0');
-                    } else if (numStr.split('.')[1].length > 2) {
-                        numStr = numStr.substring(0, numStr.indexOf('.') + 3);
-                    }
-                    
-                    return numStr;
-                }
-
-                // رفع الصورة ومعالجتها
-                async function handleImageUpload(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    
-                    const reader = new FileReader();
-                    reader.onload = async function(e) {
-                        await performOCR(e.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                }
-
-                // فتح الكاميرا للتقاط أو مسح
-                async function openCamera(mode) {
-                    currentMode = mode;
-                    isAutoScan = mode === 'scan';
-                    document.getElementById('modalTitle').textContent = mode === 'scan' ? 'Auto Scanning Prescription' : 'Capture Prescription';
-                    document.getElementById('cameraModal').style.display = 'flex';
-                    
-                    try {
-                        const constraints = { 
-                            video: { 
-                                facingMode: 'environment',
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 }
-                            }, 
-                            audio: false 
-                        };
-                        
-                        // تفعيل الفلاش إذا كان متاحاً ومفعل
-                        if (flashEnabled && 'torch' in navigator.mediaDevices.getSupportedConstraints()) {
-                            constraints.video.torch = true;
-                        }
-                        
-                        stream = await navigator.mediaDevices.getUserMedia(constraints);
-                        const video = document.getElementById('cameraFeed');
-                        video.srcObject = stream;
-                        
-                        if (isAutoScan) {
-                            document.getElementById('captureBtn').style.display = 'none';
-                            autoScanTimeout = setTimeout(() => {
-                                captureImage();
-                            }, 3000); // تأخير 3 ثواني للمسح التلقائي
-                        } else {
-                            document.getElementById('captureBtn').style.display = 'block';
-                            document.getElementById('captureBtn').onclick = captureImage;
-                        }
-                    } catch (err) {
-                        console.error('Camera error:', err);
-                        alert('Could not access camera. Please check permissions.');
-                        closeCamera();
-                    }
-                }
-
-                // تفعيل/إيقاف الفلاش
-                async function toggleFlash() {
-                    if (!stream) return;
-                    
-                    try {
-                        const videoTrack = stream.getVideoTracks()[0];
-                        if (videoTrack && 'torch' in videoTrack.getCapabilities()) {
-                            flashEnabled = !flashEnabled;
-                            await videoTrack.applyConstraints({
-                                advanced: [{torch: flashEnabled}]
-                            });
-                            document.getElementById('flashBtn').textContent = flashEnabled ? 'Flash ON' : 'Flash OFF';
-                            return true;
-                        }
-                    } catch (err) {
-                        console.error('Flash error:', err);
-                    }
-                    return false;
-                }
-
-                // بدء المسح التلقائي
-                function startAutoScan() {
-                    openCamera('scan');
-                }
-
-                // التقاط صورة من الكاميرا
-                function captureImage() {
-                    const video = document.getElementById('cameraFeed');
-                    const canvas = document.getElementById('photoCanvas');
-                    const context = canvas.getContext('2d');
-                    
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    // تحسين الصورة قبل الحفظ
-                    const imageData = enhancePrescriptionImage(canvas);
-                    
-                    // إغلاق الكاميرا ومعالجة الصورة
-                    closeCamera();
-                    performOCR(imageData);
-                }
-
-                // تحسين جودة الصورة لمقاسات النظارات
-                function enhancePrescriptionImage(canvas) {
-                    const tempCanvas = document.createElement('canvas');
-                    const tempCtx = tempCanvas.getContext('2d');
-                    
-                    // زيادة حجم الصورة لتحسين الدقة
-                    tempCanvas.width = canvas.width * 1.5;
-                    tempCanvas.height = canvas.height * 1.5;
-                    
-                    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
-                    
-                    // تطبيق مرشح لتحسين التباين
-                    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-                    const data = imageData.data;
-                    
-                    // تحسين التباين والسطوع
-                    const contrast = 1.5;
-                    const brightness = 10;
-                    
-                    for (let i = 0; i < data.length; i += 4) {
-                        // تحويل إلى تدرج رمادي
-                        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-                        
-                        // تطبيق التباين والسطوع
-                        const adjusted = (gray - 128) * contrast + 128 + brightness;
-                        
-                        // تعيين القيم النهائية
-                        data[i] = data[i + 1] = data[i + 2] = adjusted < 0 ? 0 : adjusted > 255 ? 255 : adjusted;
-                        
-                        // زيادة حدة الحواف
-                        data[i] = data[i + 1] = data[i + 2] = data[i] > 180 ? 255 : data[i] < 50 ? 0 : data[i];
-                    }
-                    
-                    tempCtx.putImageData(imageData, 0, 0);
-                    return tempCanvas.toDataURL('image/jpeg', 0.9);
-                }
-
-                // إغلاق الكاميرا وتنظيف الموارد
-                function closeCamera() {
-                    if (autoScanTimeout) {
-                        clearTimeout(autoScanTimeout);
-                        autoScanTimeout = null;
-                    }
-                    
-                    if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
-                        stream = null;
-                    }
-                    
-                    document.getElementById('cameraModal').style.display = 'none';
-                }
-
-                // التحقق من البيانات والمتابعة
-                function validateAndContinue() {
-                    const fields = [
-                        { id: 'odSp', isAxis: false },
-                        { id: 'odCy', isAxis: false },
-                        { id: 'odAx', isAxis: true },
-                        { id: 'osSp', isAxis: false },
-                        { id: 'osCy', isAxis: false },
-                        { id: 'osAx', isAxis: true }
-                    ];
-                    
-                    let hasInvalidField = false;
-                    
-                    fields.forEach(({ id, isAxis }) => {
-                        const element = document.getElementById(id);
-                        const value = element.value.trim();
-                        
-                        if (!isValidPrescriptionValue(value, isAxis)) {
-                            element.style.border = '1px solid red';
-                            hasInvalidField = true;
-                        } else {
-                            element.style.border = '';
-                            localStorage.setItem(id, value);
-                        }
-                    });
-                    
-                    const button = document.querySelector('.login-button');
-                    const errorMessage = document.getElementById('errorMessage');
-                    
-                    if (hasInvalidField) {
-                        button.textContent = 'Skip (Set to 0)';
-                        errorMessage.textContent = 'Invalid values detected. Please correct or click to set all to 0.';
-                        errorMessage.style.color = 'red';
-                        
-                        button.onclick = function() {
-                            fields.forEach(({ id }) => {
-                                document.getElementById(id).value = '0';
-                            });
-                            validateAndContinue();
-                        };
-                    } else {
-                        button.textContent = 'Continue';
-                        errorMessage.textContent = '';
-                        
-                        // المتابعة إلى الخطوة التالية
-                        // document.getElementById('part1sinup').style.display = 'none';
-                        // document.getElementById('part2sinup').style.display = 'none';
-                        // document.getElementById('part3sinup').style.display = 'block';
-                        
-                        button.onclick = validateAndContinue;
-                    }
+            // Close camera modal
+            function closeCamera() {
+                if (autoScanTimeout) {
+                    clearTimeout(autoScanTimeout);
+                    autoScanTimeout = null;
                 }
                 
-                // التحقق من صحة قيم وصفة النظارات
-                function isValidPrescriptionValue(value, isAxis) {
-                    if (value === '0') return true;
+                closeCurrentStream();
+                document.getElementById('cameraModal').style.display = 'none';
+            }
+
+            // Enhance prescription image for better OCR results
+            function enhancePrescriptionImage(canvas) {
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // Increase image size for better resolution
+                tempCanvas.width = canvas.width * 1.5;
+                tempCanvas.height = canvas.height * 1.5;
+                
+                tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Apply contrast filter
+                const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                const data = imageData.data;
+                
+                // Adjust contrast and brightness
+                const contrast = 1.5;
+                const brightness = 10;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    // Convert to grayscale
+                    const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
                     
-                    if (isAxis) {
-                        const num = parseInt(value, 10);
-                        return !isNaN(num) && num >= 0 && num <= 180;
+                    // Apply contrast and brightness
+                    const adjusted = (gray - 128) * contrast + 128 + brightness;
+                    
+                    // Set final values
+                    data[i] = data[i + 1] = data[i + 2] = adjusted < 0 ? 0 : adjusted > 255 ? 255 : adjusted;
+                    
+                    // Increase edge sharpness
+                    data[i] = data[i + 1] = data[i + 2] = data[i] > 180 ? 255 : data[i] < 50 ? 0 : data[i];
+                }
+                
+                tempCtx.putImageData(imageData, 0, 0);
+                return tempCanvas.toDataURL('image/jpeg', 0.9);
+            }
+
+            // Perform OCR on the captured image
+            async function performOCR(imageData) {
+                const loadingElement = document.getElementById('loading');
+                const progressBar = document.getElementById('progressBar');
+                const progressPercent = document.getElementById('progressPercent');
+                const outputElement = document.getElementById('output');
+                
+                loadingElement.style.display = 'block';
+                progressBar.value = 0;
+                outputElement.textContent = 'Processing image...';
+                
+                try {
+                    // Pre-process image for better OCR accuracy
+                    const processedImage = await preprocessPrescriptionImage(imageData);
+                    
+                    const { data: { text, progress } } = await Tesseract.recognize(
+                        processedImage,
+                        'eng',
+                        {
+                            logger: m => {
+                                progressBar.value = m.progress * 100;
+                                progressPercent.textContent = Math.round(m.progress * 100);
+                                if (m.status) outputElement.textContent = m.status;
+                            },
+                            tessedit_char_whitelist: '0123456789+-.ODOSRLEAXISPHCYLAXSPHEREYRIGHTLEFT',
+                            preserve_interword_spaces: '1',
+                            tessedit_pageseg_mode: '6'
+                        }
+                    );
+                    
+                    outputElement.textContent = text;
+                    parsePrescription(text);
+                } catch (error) {
+                    console.error('Error in OCR:', error);
+                    outputElement.textContent = 'Error processing image. Please try again or enter data manually.';
+                } finally {
+                    loadingElement.style.display = 'none';
+                }
+            }
+
+            // Pre-process prescription image specifically for glasses prescriptions
+            async function preprocessPrescriptionImage(imageData) {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set new dimensions while maintaining aspect ratio
+                        const maxWidth = 1000;
+                        const maxHeight = 1000;
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        if (width > maxWidth) {
+                            height = (maxWidth / width) * height;
+                            width = maxWidth;
+                        }
+                        
+                        if (height > maxHeight) {
+                            width = (maxHeight / height) * width;
+                            height = maxHeight;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        // Draw image with contrast enhancement
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Improve image for text focus
+                        const imageData = ctx.getImageData(0, 0, width, height);
+                        const data = imageData.data;
+                        
+                        // Adjust contrast and brightness
+                        const contrast = 1.5;
+                        const brightness = 0;
+                        
+                        for (let i = 0; i < data.length; i += 4) {
+                            // Convert to grayscale
+                            const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                            
+                            // Apply contrast and brightness
+                            const adjusted = (gray - 128) * contrast + 128 + brightness;
+                            
+                            // Set final values
+                            data[i] = data[i + 1] = data[i + 2] = adjusted < 0 ? 0 : adjusted > 255 ? 255 : adjusted;
+                            
+                            // Increase edge sharpness
+                            data[i] = data[i + 1] = data[i + 2] = data[i] > 180 ? 255 : data[i] < 50 ? 0 : data[i];
+                        }
+                        
+                        ctx.putImageData(imageData, 0, 0);
+                        resolve(canvas.toDataURL('image/jpeg'));
+                    };
+                    img.src = imageData;
+                });
+            }
+
+            // Parse prescription text to extract values
+            function parsePrescription(text) {
+                // Clean and normalize text for parsing
+                const normalizedText = text
+                    .replace(/[^a-zA-Z0-9\+\-\.\s]/g, ' ') // Remove special characters
+                    .replace(/\s+/g, ' ') // Normalize spaces
+                    .toUpperCase();
+                
+                console.log("Normalized text:", normalizedText);
+
+                // Custom patterns for glasses prescriptions
+                const patterns = [
+                    // Pattern 1: OD/OS with Sphere, Cylinder, Axis
+                    /(?:OD|RIGHT|RE)[^:\n]*:\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+).*?(?:OS|LEFT|LE)[^:\n]*:\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+)/i,
+                    
+                    // Pattern 2: Sphere, Cylinder, Axis values for each eye
+                    /(?:SPH|SPHERE)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:CYL|CYLINDER)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:AX|AXIS)[^\d\+-]*(\d+).*?(?:SPH|SPHERE)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:CYL|CYLINDER)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:AX|AXIS)[^\d\+-]*(\d+)/i,
+                    
+                    // Pattern 3: Values in order (OD then OS)
+                    /([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)\s+([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)/i,
+                    
+                    // Pattern 4: With labels for each eye (without :)
+                    /(?:OD|RIGHT|RE)\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+).*?(?:OS|LEFT|LE)\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+)/i
+                ];
+
+                let matches = null;
+                for (const pattern of patterns) {
+                    matches = normalizedText.match(pattern);
+                    if (matches) break;
+                }
+
+                if (matches && matches.length >= 7) {
+                    // Determine which eye comes first based on pattern
+                    const isOdFirst = normalizedText.indexOf('OD') > -1 || 
+                                    normalizedText.indexOf('RIGHT') > -1 || 
+                                    normalizedText.indexOf('RE') > -1 ||
+                                    (normalizedText.indexOf('OS') === -1 && 
+                                    normalizedText.indexOf('LEFT') === -1 && 
+                                    normalizedText.indexOf('LE') === -1);
+
+                    if (isOdFirst) {
+                        // Right eye first
+                        document.getElementById('odSp').value = formatNumber(matches[1]);
+                        document.getElementById('odCy').value = formatNumber(matches[2]);
+                        document.getElementById('odAx').value = formatNumber(matches[3], true);
+                        document.getElementById('osSp').value = formatNumber(matches[4]);
+                        document.getElementById('osCy').value = formatNumber(matches[5]);
+                        document.getElementById('osAx').value = formatNumber(matches[6], true);
                     } else {
-                        const num = parseFloat(value);
-                        return !isNaN(num) && num >= -30 && num <= 30 && 
-                              /^[+-]?\d+(\.\d{1,2})?$/.test(value);
+                        // Left eye first
+                        document.getElementById('osSp').value = formatNumber(matches[1]);
+                        document.getElementById('osCy').value = formatNumber(matches[2]);
+                        document.getElementById('osAx').value = formatNumber(matches[3], true);
+                        document.getElementById('odSp').value = formatNumber(matches[4]);
+                        document.getElementById('odCy').value = formatNumber(matches[5]);
+                        document.getElementById('odAx').value = formatNumber(matches[6], true);
+                    }
+                    
+                    console.log("Matched values:", matches.slice(1, 7));
+                } else {
+                    console.log("No matching pattern found");
+                    // Fallback method: Find all numbers and assign in order
+                    const numbers = normalizedText.match(/[+-]?\d+\.?\d*/g) || [];
+                    if (numbers.length >= 6) {
+                        document.getElementById('odSp').value = formatNumber(numbers[0]);
+                        document.getElementById('odCy').value = formatNumber(numbers[1]);
+                        document.getElementById('odAx').value = formatNumber(numbers[2], true);
+                        document.getElementById('osSp').value = formatNumber(numbers[3]);
+                        document.getElementById('osCy').value = formatNumber(numbers[4]);
+                        document.getElementById('osAx').value = formatNumber(numbers[5], true);
+                    } else {
+                        alert("Could not extract prescription data. Please enter manually.");
                     }
                 }
+            }
+
+            // Format numbers correctly for prescription values
+            function formatNumber(value, isAxis = false) {
+                if (!value) return '0';
+                
+                // Remove any non-numeric characters
+                let numStr = value.toString().replace(/[^0-9+-.]/g, '');
+                
+                // Special handling for Axis
+                if (isAxis) {
+                    let axisNum = parseFloat(numStr.replace(/[^0-9]/g, ''));
+                    axisNum = Math.max(0, Math.min(180, axisNum)); // Ensure axis is between 0-180
+                    return axisNum.toString();
+                }
+                
+                // Ensure +/- sign exists
+                if (!['+', '-'].includes(numStr.charAt(0))) {
+                    numStr = '+' + numStr;
+                }
+                
+                // Ensure decimal places
+                if (!numStr.includes('.')) {
+                    numStr += '.00';
+                } else if (numStr.split('.')[1].length < 2) {
+                    numStr = numStr.padEnd(numStr.indexOf('.') + 3, '0');
+                } else if (numStr.split('.')[1].length > 2) {
+                    numStr = numStr.substring(0, numStr.indexOf('.') + 3);
+                }
+                
+                return numStr;
+            }
+
+            // Handle image upload
+            async function handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    await performOCR(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Start auto scan
+            function startAutoScan() {
+                openCamera('scan');
+            }
+
+            // Validate form and continue
+            function validateAndContinue() {
+                const fields = [
+                    { id: 'odSp', isAxis: false },
+                    { id: 'odCy', isAxis: false },
+                    { id: 'odAx', isAxis: true },
+                    { id: 'osSp', isAxis: false },
+                    { id: 'osCy', isAxis: false },
+                    { id: 'osAx', isAxis: true }
+                ];
+                
+                let hasInvalidField = false;
+                
+                fields.forEach(({ id, isAxis }) => {
+                    const element = document.getElementById(id);
+                    const value = element.value.trim();
+                    
+                    if (!isValidPrescriptionValue(value, isAxis)) {
+                        element.style.border = '1px solid red';
+                        hasInvalidField = true;
+                    } else {
+                        element.style.border = '';
+                        localStorage.setItem(id, value);
+                    }
+                });
+                
+                const button = document.querySelector('.login-button');
+                const errorMessage = document.getElementById('errorMessage');
+                
+                if (hasInvalidField) {
+                    button.textContent = 'Skip (Set to 0)';
+                    errorMessage.textContent = 'Invalid values detected. Please correct or click to set all to 0.';
+                    errorMessage.style.color = 'red';
+                    
+                    button.onclick = function() {
+                        fields.forEach(({ id }) => {
+                            document.getElementById(id).value = '0';
+                        });
+                        validateAndContinue();
+                    };
+                } else {
+                    button.textContent = 'Continue';
+                    errorMessage.textContent = '';
+                    
+                    // Continue to next step
+                    // document.getElementById('part1sinup').style.display = 'none';
+                    // document.getElementById('part2sinup').style.display = 'none';
+                    // document.getElementById('part3sinup').style.display = 'block';
+                    
+                    button.onclick = validateAndContinue;
+                }
+            }
+
+            // Validate prescription values
+            function isValidPrescriptionValue(value, isAxis) {
+                if (value === '0') return true;
+                
+                if (isAxis) {
+                    const num = parseInt(value, 10);
+                    return !isNaN(num) && num >= 0 && num <= 180;
+                } else {
+                    const num = parseFloat(value);
+                    return !isNaN(num) && num >= -30 && num <= 30 && 
+                          /^[+-]?\d+(\.\d{1,2})?$/.test(value);
+                }
+            }
             </script>
 
 
