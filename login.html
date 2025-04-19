@@ -230,6 +230,7 @@
                 <video id="cameraFeed" autoplay playsinline style="width: 100%; height: auto; background: black;"></video>
                 <canvas id="photoCanvas" style="display: none;"></canvas>
                 <div style="display: flex; justify-content: center; margin-top: 15px;">
+                  <button id="flashBtn" onclick="toggleFlash()" style="padding: 10px 20px; background: #555; color: white; border: none; border-radius: 5px; margin: 0 10px;">Flash OFF</button>
                   <button id="captureBtn" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; margin: 0 10px;">Capture</button>
                   <button onclick="closeCamera()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 5px; margin: 0 10px;">Cancel</button>
                 </div>
@@ -243,8 +244,9 @@
                 let isAutoScan = false;
                 let autoScanTimeout = null;
                 let currentMode = '';
+                let flashEnabled = false;
                 
-                // تهيئة النموذج بالقيم المحفوظة إذا وجدت
+                // تهيئة النموذج بالقيم المحفوظة
                 window.addEventListener('DOMContentLoaded', () => {
                     const fields = ['odSp', 'odCy', 'odAx', 'osSp', 'osCy', 'osAx'];
                     fields.forEach(field => {
@@ -254,8 +256,8 @@
                         }
                     });
                 });
-            
-                // تحسين دقة استخراج النص
+
+                // تحسين دقة استخراج النص لمقاسات النظارات فقط
                 async function performOCR(imageData) {
                     const loadingElement = document.getElementById('loading');
                     const progressBar = document.getElementById('progressBar');
@@ -267,8 +269,8 @@
                     outputElement.textContent = 'Processing image...';
                     
                     try {
-                        // تحسين معالجة الصورة قبل OCR
-                        const processedImage = await preprocessImage(imageData);
+                        // معالجة مسبقة للصورة لتحسين دقة OCR
+                        const processedImage = await preprocessPrescriptionImage(imageData);
                         
                         const { data: { text, progress } } = await Tesseract.recognize(
                             processedImage,
@@ -279,9 +281,9 @@
                                     progressPercent.textContent = Math.round(m.progress * 100);
                                     if (m.status) outputElement.textContent = m.status;
                                 },
-                                tessedit_char_whitelist: '0123456789+-.ODOSRLEAXISPHCYLAXSPHEREYRIGHTLEFT', // تحديد الأحرف المتوقعة
-                                preserve_interword_spaces: '1', // الحفاظ على المسافات بين الكلمات
-                                tessedit_pageseg_mode: '6' // وضع التجزئة لكتلة واحدة من النص
+                                tessedit_char_whitelist: '0123456789+-.ODOSRLEAXISPHCYLAXSPHEREYRIGHTLEFT',
+                                preserve_interword_spaces: '1',
+                                tessedit_pageseg_mode: '6'
                             }
                         );
                         
@@ -294,80 +296,110 @@
                         loadingElement.style.display = 'none';
                     }
                 }
-            
-                // معالجة مسبقة للصورة لتحسين دقة OCR
-                async function preprocessImage(imageData) {
+
+                // معالجة مخصصة لصور وصفات النظارات
+                async function preprocessPrescriptionImage(imageData) {
                     return new Promise((resolve) => {
                         const img = new Image();
                         img.onload = function() {
                             const canvas = document.createElement('canvas');
                             const ctx = canvas.getContext('2d');
                             
-                            // زيادة حجم الصورة لتحسين الدقة
-                            canvas.width = img.width * 2;
-                            canvas.height = img.height * 2;
+                            // تحديد أبعاد جديدة للصورة مع الحفاظ على التناسب
+                            const maxWidth = 1000;
+                            const maxHeight = 1000;
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            if (width > maxWidth) {
+                                height = (maxWidth / width) * height;
+                                width = maxWidth;
+                            }
+                            
+                            if (height > maxHeight) {
+                                width = (maxHeight / height) * width;
+                                height = maxHeight;
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
                             
                             // رسم الصورة مع تحسين التباين
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0, width, height);
                             
-                            // تحسين الصورة
-                            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                            // تحسين الصورة للتركيز على النص
+                            const imageData = ctx.getImageData(0, 0, width, height);
                             const data = imageData.data;
                             
-                            // زيادة التباين
+                            // تحسين التباين والسطوع
+                            const contrast = 1.5; // زيادة التباين
+                            const brightness = 0; // تعديل السطوع
+                            
                             for (let i = 0; i < data.length; i += 4) {
-                                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                                data[i] = data[i + 1] = data[i + 2] = avg < 128 ? 0 : 255;
+                                // تحويل إلى تدرج رمادي
+                                const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                                
+                                // تطبيق التباين والسطوع
+                                const adjusted = (gray - 128) * contrast + 128 + brightness;
+                                
+                                // تعيين القيم النهائية
+                                data[i] = data[i + 1] = data[i + 2] = adjusted < 0 ? 0 : adjusted > 255 ? 255 : adjusted;
+                                
+                                // زيادة حدة الحواف (اختياري)
+                                data[i] = data[i + 1] = data[i + 2] = data[i] > 180 ? 255 : data[i] < 50 ? 0 : data[i];
                             }
                             
                             ctx.putImageData(imageData, 0, 0);
+                            
+                            // اقتصاص المناطق غير الضرورية (اختياري)
+                            // يمكن إضافة منطق لاقتصاص الصورة تلقائياً هنا
+                            
                             resolve(canvas.toDataURL('image/jpeg'));
                         };
                         img.src = imageData;
                     });
                 }
-            
+
                 // تحليل نص القياسات الطبية بدقة أعلى
                 function parsePrescription(text) {
-                    // تنظيف النص لتحسين التحليل
+                    // تنظيف النص وتحسينه للتحليل
                     const normalizedText = text
                         .replace(/[^a-zA-Z0-9\+\-\.\s]/g, ' ') // إزالة الأحرف الخاصة
                         .replace(/\s+/g, ' ') // ضبط المسافات
                         .toUpperCase();
                     
                     console.log("Normalized text:", normalizedText);
-            
-                    // أنماط مختلفة لفهم صيغ القياسات
+
+                    // أنماط مخصصة لمقاسات النظارات فقط
                     const patterns = [
-                        // النمط 1: تنسيق OD/OS واضح
-                        /OD\s*:\s*([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+).*?OS\s*:\s*([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)/i,
-                        // النمط 2: تنسيق Right/Left
-                        /RIGHT\s*:\s*([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+).*?LEFT\s*:\s*([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)/i,
-                        // النمط 3: تنسيق RE/LE
-                        /RE\s*:\s*([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+).*?LE\s*:\s*([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)/i,
-                        // النمط 4: قيم بالترتيب (OD ثم OS)
-                        /([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)\s+([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)/i,
-                        // النمط 5: مع تسميات مثل SPH، CYL، AXIS
+                        // النمط 1: OD/OS مع Sphere, Cylinder, Axis
+                        /(?:OD|RIGHT|RE)[^:\n]*:\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+).*?(?:OS|LEFT|LE)[^:\n]*:\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+)/i,
+                        
+                        // النمط 2: قيم Sphere, Cylinder, Axis لكل عين
                         /(?:SPH|SPHERE)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:CYL|CYLINDER)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:AX|AXIS)[^\d\+-]*(\d+).*?(?:SPH|SPHERE)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:CYL|CYLINDER)[^\d\+-]*([+-]?\d+\.?\d*)[^\d\+-]*(?:AX|AXIS)[^\d\+-]*(\d+)/i,
-                        // النمط 6: مع تسميات لكل عين
-                        /(?:OD|RIGHT|RE)[^:\n]*:\s*([+-]?\d+\.?\d*)[^:\n]*:\s*([+-]?\d+\.?\d*)[^:\n]*:\s*(\d+).*?(?:OS|LEFT|LE)[^:\n]*:\s*([+-]?\d+\.?\d*)[^:\n]*:\s*([+-]?\d+\.?\d*)[^:\n]*:\s*(\d+)/i
+                        
+                        // النمط 3: قيم بالترتيب (OD ثم OS)
+                        /([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)\s+([+-]?\d+\.?\d*)\s+([+-]?\d+\.?\d*)\s+(\d+)/i,
+                        
+                        // النمط 4: مع تسميات لكل عين (بدون :)
+                        /(?:OD|RIGHT|RE)\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+).*?(?:OS|LEFT|LE)\s*([+-]?\d+\.?\d*)\s*([+-]?\d+\.?\d*)\s*(\d+)/i
                     ];
-            
+
                     let matches = null;
                     for (const pattern of patterns) {
                         matches = normalizedText.match(pattern);
                         if (matches) break;
                     }
-            
+
                     if (matches && matches.length >= 7) {
                         // تحديد أي العينين أولاً بناء على النمط
                         const isOdFirst = normalizedText.indexOf('OD') > -1 || 
                                         normalizedText.indexOf('RIGHT') > -1 || 
                                         normalizedText.indexOf('RE') > -1 ||
                                         (normalizedText.indexOf('OS') === -1 && 
-                                         normalizedText.indexOf('LEFT') === -1 && 
-                                         normalizedText.indexOf('LE') === -1);
-            
+                                        normalizedText.indexOf('LEFT') === -1 && 
+                                        normalizedText.indexOf('LE') === -1);
+
                         if (isOdFirst) {
                             // العين اليمنى أولاً
                             document.getElementById('odSp').value = formatNumber(matches[1]);
@@ -403,18 +435,13 @@
                         }
                     }
                 }
-            
-                // تنسيق الأرقام بشكل صحيح
+
+                // تنسيق الأرقام بشكل صحيح لمقاسات النظارات
                 function formatNumber(value, isAxis = false) {
                     if (!value) return '0';
                     
                     // إزالة أي أحرف غير رقمية
                     let numStr = value.toString().replace(/[^0-9+-.]/g, '');
-                    
-                    // التأكد من وجود علامة + أو - إذا لزم الأمر
-                    if (!['+', '-'].includes(numStr.charAt(0))) {
-                        numStr = '+' + numStr;
-                    }
                     
                     // معالجة خاصة لمحور Axis
                     if (isAxis) {
@@ -423,16 +450,23 @@
                         return axisNum.toString();
                     }
                     
-                    // التأكد من وجود منزلة عشرية إذا كانت القيمة تحتوي على نقطة
-                    if (numStr.includes('.') && numStr.split('.')[1].length < 2) {
-                        numStr = numStr.padEnd(numStr.indexOf('.') + 3, '0');
-                    } else if (!numStr.includes('.')) {
+                    // التأكد من وجود علامة + أو -
+                    if (!['+', '-'].includes(numStr.charAt(0))) {
+                        numStr = '+' + numStr;
+                    }
+                    
+                    // التأكد من وجود منزلة عشرية
+                    if (!numStr.includes('.')) {
                         numStr += '.00';
+                    } else if (numStr.split('.')[1].length < 2) {
+                        numStr = numStr.padEnd(numStr.indexOf('.') + 3, '0');
+                    } else if (numStr.split('.')[1].length > 2) {
+                        numStr = numStr.substring(0, numStr.indexOf('.') + 3);
                     }
                     
                     return numStr;
                 }
-            
+
                 // رفع الصورة ومعالجتها
                 async function handleImageUpload(event) {
                     const file = event.target.files[0];
@@ -440,13 +474,11 @@
                     
                     const reader = new FileReader();
                     reader.onload = async function(e) {
-                        // حفظ في التخزين المحلي
-                        localStorage.setItem('prescriptionImage', e.target.result);
                         await performOCR(e.target.result);
                     };
                     reader.readAsDataURL(file);
                 }
-            
+
                 // فتح الكاميرا للتقاط أو مسح
                 async function openCamera(mode) {
                     currentMode = mode;
@@ -455,14 +487,21 @@
                     document.getElementById('cameraModal').style.display = 'flex';
                     
                     try {
-                        stream = await navigator.mediaDevices.getUserMedia({ 
+                        const constraints = { 
                             video: { 
                                 facingMode: 'environment',
                                 width: { ideal: 1280 },
                                 height: { ideal: 720 }
                             }, 
                             audio: false 
-                        });
+                        };
+                        
+                        // تفعيل الفلاش إذا كان متاحاً ومفعل
+                        if (flashEnabled && 'torch' in navigator.mediaDevices.getSupportedConstraints()) {
+                            constraints.video.torch = true;
+                        }
+                        
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
                         const video = document.getElementById('cameraFeed');
                         video.srcObject = stream;
                         
@@ -481,44 +520,59 @@
                         closeCamera();
                     }
                 }
-            
+
+                // تفعيل/إيقاف الفلاش
+                async function toggleFlash() {
+                    if (!stream) return;
+                    
+                    try {
+                        const videoTrack = stream.getVideoTracks()[0];
+                        if (videoTrack && 'torch' in videoTrack.getCapabilities()) {
+                            flashEnabled = !flashEnabled;
+                            await videoTrack.applyConstraints({
+                                advanced: [{torch: flashEnabled}]
+                            });
+                            document.getElementById('flashBtn').textContent = flashEnabled ? 'Flash ON' : 'Flash OFF';
+                            return true;
+                        }
+                    } catch (err) {
+                        console.error('Flash error:', err);
+                    }
+                    return false;
+                }
+
                 // بدء المسح التلقائي
                 function startAutoScan() {
                     openCamera('scan');
                 }
-            
+
                 // التقاط صورة من الكاميرا
                 function captureImage() {
                     const video = document.getElementById('cameraFeed');
                     const canvas = document.getElementById('photoCanvas');
                     const context = canvas.getContext('2d');
                     
-                    // ضبط أبعاد Canvas لتتناسب مع دقة الكاميرا
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     
-                    // رسم الإطار الحالي على Canvas
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
                     
                     // تحسين الصورة قبل الحفظ
-                    const imageData = enhanceImage(canvas);
-                    
-                    // حفظ في التخزين المحلي
-                    localStorage.setItem('prescriptionImage', imageData);
+                    const imageData = enhancePrescriptionImage(canvas);
                     
                     // إغلاق الكاميرا ومعالجة الصورة
                     closeCamera();
                     performOCR(imageData);
                 }
-            
-                // تحسين جودة الصورة قبل OCR
-                function enhanceImage(canvas) {
+
+                // تحسين جودة الصورة لمقاسات النظارات
+                function enhancePrescriptionImage(canvas) {
                     const tempCanvas = document.createElement('canvas');
                     const tempCtx = tempCanvas.getContext('2d');
                     
                     // زيادة حجم الصورة لتحسين الدقة
-                    tempCanvas.width = canvas.width * 2;
-                    tempCanvas.height = canvas.height * 2;
+                    tempCanvas.width = canvas.width * 1.5;
+                    tempCanvas.height = canvas.height * 1.5;
                     
                     tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
                     
@@ -526,24 +580,28 @@
                     const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
                     const data = imageData.data;
                     
-                    // تحسين التباين
+                    // تحسين التباين والسطوع
+                    const contrast = 1.5;
+                    const brightness = 10;
+                    
                     for (let i = 0; i < data.length; i += 4) {
-                        const r = data[i];
-                        const g = data[i + 1];
-                        const b = data[i + 2];
+                        // تحويل إلى تدرج رمادي
+                        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
                         
-                        // تحويل إلى تدرج رمادي مع تحسين التباين
-                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-                        const contrast = 1.5; // زيادة التباين
-                        const adjusted = ((gray - 128) * contrast) + 128;
+                        // تطبيق التباين والسطوع
+                        const adjusted = (gray - 128) * contrast + 128 + brightness;
                         
+                        // تعيين القيم النهائية
                         data[i] = data[i + 1] = data[i + 2] = adjusted < 0 ? 0 : adjusted > 255 ? 255 : adjusted;
+                        
+                        // زيادة حدة الحواف
+                        data[i] = data[i + 1] = data[i + 2] = data[i] > 180 ? 255 : data[i] < 50 ? 0 : data[i];
                     }
                     
                     tempCtx.putImageData(imageData, 0, 0);
                     return tempCanvas.toDataURL('image/jpeg', 0.9);
                 }
-            
+
                 // إغلاق الكاميرا وتنظيف الموارد
                 function closeCamera() {
                     if (autoScanTimeout) {
@@ -558,67 +616,44 @@
                     
                     document.getElementById('cameraModal').style.display = 'none';
                 }
-            
+
                 // التحقق من البيانات والمتابعة
                 function validateAndContinue() {
-                    // الحصول على حقول الإدخال
-                    const odSp = document.getElementById('odSp');
-                    const odCy = document.getElementById('odCy');
-                    const odAx = document.getElementById('odAx');
-                    const osSp = document.getElementById('osSp');
-                    const osCy = document.getElementById('osCy');
-                    const osAx = document.getElementById('osAx');
-            
-                    // الحصول على عناصر الزر ورسالة الخطأ
-                    const button = document.querySelector('.login-button');
-                    const errorMessage = document.getElementById('errorMessage');
-            
-                    // التحقق من صحة القيمة
-                    const isValid = (value, isAxis = false) => {
-                        if (value.trim() === '0') return true;
-                        
-                        const num = parseFloat(value);
-                        if (isNaN(num)) return false;
-                        
-                        if (isAxis) {
-                            return num >= 0 && num <= 180 && /^\d+$/.test(value);
-                        } else {
-                            return num >= -30 && num <= 30 && /^[+-]?\d+(\.\d{1,2})?$/.test(value);
-                        }
-                    };
-            
-                    // متغير لتتبع وجود حقول غير صالحة
-                    let hasInvalidField = false;
-            
-                    // التحقق من كل حقل إدخال
                     const fields = [
-                        { element: odSp, isAxis: false },
-                        { element: odCy, isAxis: false },
-                        { element: odAx, isAxis: true },
-                        { element: osSp, isAxis: false },
-                        { element: osCy, isAxis: false },
-                        { element: osAx, isAxis: true }
+                        { id: 'odSp', isAxis: false },
+                        { id: 'odCy', isAxis: false },
+                        { id: 'odAx', isAxis: true },
+                        { id: 'osSp', isAxis: false },
+                        { id: 'osCy', isAxis: false },
+                        { id: 'osAx', isAxis: true }
                     ];
-            
-                    fields.forEach(({ element, isAxis }) => {
-                        if (!isValid(element.value, isAxis)) {
+                    
+                    let hasInvalidField = false;
+                    
+                    fields.forEach(({ id, isAxis }) => {
+                        const element = document.getElementById(id);
+                        const value = element.value.trim();
+                        
+                        if (!isValidPrescriptionValue(value, isAxis)) {
                             element.style.border = '1px solid red';
                             hasInvalidField = true;
                         } else {
                             element.style.border = '';
+                            localStorage.setItem(id, value);
                         }
                     });
-            
-                    // التعامل مع نص الزر ورسالة الخطأ
+                    
+                    const button = document.querySelector('.login-button');
+                    const errorMessage = document.getElementById('errorMessage');
+                    
                     if (hasInvalidField) {
                         button.textContent = 'Skip (Set to 0)';
                         errorMessage.textContent = 'Invalid values detected. Please correct or click to set all to 0.';
                         errorMessage.style.color = 'red';
                         
-                        // عند النقر على الزر مع وجود أخطاء، تعيين جميع القيم إلى 0
                         button.onclick = function() {
-                            fields.forEach(field => {
-                                field.element.value = '0';
+                            fields.forEach(({ id }) => {
+                                document.getElementById(id).value = '0';
                             });
                             validateAndContinue();
                         };
@@ -626,18 +661,26 @@
                         button.textContent = 'Continue';
                         errorMessage.textContent = '';
                         
-                        // تخزين القيم في التخزين المحلي
-                        fields.forEach(field => {
-                            localStorage.setItem(field.element.id, field.element.value);
-                        });
-                        
                         // المتابعة إلى الخطوة التالية
-                        document.getElementById('part1sinup').style.display = 'none';
-                        document.getElementById('part2sinup').style.display = 'none';
-                        document.getElementById('part3sinup').style.display = 'block';
+                        // document.getElementById('part1sinup').style.display = 'none';
+                        // document.getElementById('part2sinup').style.display = 'none';
+                        // document.getElementById('part3sinup').style.display = 'block';
                         
-                        // إعادة تعيين معالج الأحداث الأصلي
                         button.onclick = validateAndContinue;
+                    }
+                }
+                
+                // التحقق من صحة قيم وصفة النظارات
+                function isValidPrescriptionValue(value, isAxis) {
+                    if (value === '0') return true;
+                    
+                    if (isAxis) {
+                        const num = parseInt(value, 10);
+                        return !isNaN(num) && num >= 0 && num <= 180;
+                    } else {
+                        const num = parseFloat(value);
+                        return !isNaN(num) && num >= -30 && num <= 30 && 
+                              /^[+-]?\d+(\.\d{1,2})?$/.test(value);
                     }
                 }
             </script>
