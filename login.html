@@ -270,6 +270,269 @@
             
             <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
             <script>
+            // Add this CSS to your stylesheet or in a <style> tag
+            const cameraModalStyles = `
+            <style>
+              /* Improved Camera Modal Styling */
+              #cameraModal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.9);
+                z-index: 1000;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                overflow-y: auto;
+              }
+
+              #cameraModal .modal-container {
+                width: 95%;
+                max-width: 500px;
+                background: white;
+                border-radius: 10px;
+                padding: 15px;
+                box-sizing: border-box;
+                margin: 20px 0;
+                display: flex;
+                flex-direction: column;
+                max-height: 90vh;
+              }
+
+              #cameraModal .modal-header {
+                margin-bottom: 10px;
+              }
+
+              #cameraModal .modal-body {
+                flex: 1;
+                overflow: auto;
+                margin-bottom: 10px;
+              }
+
+              #cameraModal .modal-footer {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+                padding-top: 10px;
+                position: sticky;
+                bottom: 0;
+                background: white;
+                z-index: 10;
+              }
+
+              #cameraFeed {
+                width: 100%;
+                height: auto;
+                max-height: 60vh;
+                background: black;
+                border-radius: 5px;
+              }
+
+              .camera-control-btn {
+                padding: 10px 15px;
+                background: #2196F3;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              }
+
+              .action-btn {
+                padding: 12px 20px;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                flex: 1;
+                min-width: 120px;
+              }
+
+              #captureBtn {
+                background: #4CAF50;
+              }
+
+              #cancelCameraBtn {
+                background: #f44336;
+              }
+
+              #switchCameraBtn {
+                background: #2196F3;
+              }
+
+              #flashBtn {
+                background: #FF9800;
+              }
+
+              #cameraInfo {
+                margin-bottom: 10px;
+                padding: 10px;
+                background: #f5f5f5;
+                border-radius: 5px;
+              }
+
+              #camerasList {
+                max-height: 120px;
+                overflow-y: auto;
+                margin-top: 8px;
+              }
+
+              .camera-option-btn {
+                display: block;
+                width: 100%;
+                padding: 8px 12px;
+                margin: 5px 0;
+                text-align: left;
+                background: #f1f1f1;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background 0.3s;
+                font-size: 14px;
+              }
+
+              .camera-option-btn:hover {
+                background: #ddd;
+              }
+
+              #cameraError {
+                padding: 10px;
+                background: #ffebee;
+                border-left: 4px solid #f44336;
+                margin: 10px 0;
+                display: none;
+              }
+
+              @media (max-width: 480px) {
+                #cameraModal .modal-container {
+                  width: 100%;
+                  height: 100%;
+                  max-height: 100%;
+                  border-radius: 0;
+                  margin: 0;
+                }
+
+                #cameraFeed {
+                  max-height: 50vh;
+                }
+
+                .action-btn {
+                  padding: 10px 15px;
+                  font-size: 14px;
+                }
+              }
+            </style>
+            `;
+
+            // Add the styles to the document head
+            document.head.insertAdjacentHTML('beforeend', cameraModalStyles);
+
+            // Modified camera modal HTML structure
+            const cameraModalHTML = `
+            <div id="cameraModal">
+              <div class="modal-container">
+                <div class="modal-header">
+                  <h2 id="modalTitle">Capture Prescription</h2>
+                </div>
+                
+                <div class="modal-body">
+                  <div id="cameraInfo" style="display: none;">
+                    <h4 style="margin-top: 0;">Available Cameras:</h4>
+                    <div id="camerasList"></div>
+                  </div>
+                  
+                  <div id="cameraError"></div>
+                  
+                  <video id="cameraFeed" autoplay playsinline></video>
+                  <canvas id="photoCanvas" style="display: none;"></canvas>
+                  
+                  <div style="display: flex; gap: 8px; margin: 10px 0; justify-content: center;">
+                    <button id="switchCameraBtn" class="camera-control-btn">
+                      <i class="fas fa-sync-alt"></i> Switch
+                    </button>
+                    <button id="flashBtn" class="camera-control-btn">
+                      <i class="fas fa-bolt"></i> Flash
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="modal-footer">
+                  <button id="captureBtn" class="action-btn">
+                    <i class="fas fa-camera"></i> Capture
+                  </button>
+                  <button id="cancelCameraBtn" class="action-btn">
+                    <i class="fas fa-times"></i> Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+            `;
+
+            // Add the modal to the document body
+            document.body.insertAdjacentHTML('beforeend', cameraModalHTML);
+
+            // Update the openCamera function to use the new modal
+            async function openCamera(mode) {
+                currentMode = mode;
+                isAutoScan = mode === 'scan';
+                document.getElementById('modalTitle').textContent = 
+                    mode === 'scan' ? 'Auto Scanning Prescription' : 'Capture Prescription';
+                
+                // Show modal
+                const modal = document.getElementById('cameraModal');
+                modal.style.display = 'flex';
+                
+                // Lock body scroll when modal is open
+                document.body.style.overflow = 'hidden';
+
+                // Get available cameras
+                if (!await getAvailableCameras()) {
+                    showCameraError('No cameras available');
+                    return;
+                }
+
+                // Start default camera
+                if (!await startCamera()) return;
+
+                // Setup UI based on mode
+                document.getElementById('captureBtn').style.display = isAutoScan ? 'none' : 'flex';
+                if (isAutoScan) {
+                    autoScanTimeout = setTimeout(captureImage, 3000);
+                }
+
+                // Setup control buttons
+                document.getElementById('switchCameraBtn').onclick = switchCamera;
+                document.getElementById('flashBtn').onclick = toggleFlash;
+                document.getElementById('captureBtn').onclick = captureImage;
+                document.getElementById('cancelCameraBtn').onclick = closeCamera;
+            }
+
+            // Update closeCamera function to restore scroll
+            function closeCamera() {
+                if (autoScanTimeout) clearTimeout(autoScanTimeout);
+                closeCurrentStream();
+                
+                const modal = document.getElementById('cameraModal');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            // All other functions remain the same as in the previous complete code
+            // (getAvailableCameras, startCamera, selectCamera, switchCamera, 
+            // toggleFlash, captureImage, etc.)
+
             // =============================================
             // GLOBAL VARIABLES
             // =============================================
