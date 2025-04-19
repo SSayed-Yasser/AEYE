@@ -224,18 +224,24 @@
             </div>
             
             <!-- Camera Modal -->
-            <div id="cameraModal">
-              <div>
-                  <h2 id="modalTitle">التقاط صورة الوصفة الطبية</h2>
-                  <video id="cameraFeed" autoplay playsinline style="width: 100%; height: auto; background: black;"></video>
-                  <canvas id="photoCanvas" style="display: none;"></canvas>
-                  <div style="display: flex; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
-                      <button id="switchCameraBtn" class="camera-control-btn" onclick="switchCamera()">تبديل الكاميرا</button>
-                      <button id="flashBtn" class="camera-control-btn" onclick="toggleFlash()">إضاءة OFF</button>
-                      <button id="lensBtn" class="camera-control-btn" onclick="switchLens()">العدسة الأساسية</button>
-                      <button id="captureBtn" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; margin: 0 10px;">التقاط</button>
-                      <button onclick="closeCamera()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 5px; margin: 0 10px;">إلغاء</button>
-                  </div>
+            <div id="cameraModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center;">
+              <div style="width: 90%; max-width: 500px; background: white; padding: 20px; border-radius: 10px;">
+                <h2 id="modalTitle">Capture Prescription</h2>
+                
+                <!-- إضافة قائمة اختيار الكاميرات -->
+                <div id="cameraSelectContainer" style="margin-bottom: 10px; display: none;">
+                  <label for="cameraSelect">Select Camera: </label>
+                  <select id="cameraSelect" style="padding: 5px; border-radius: 4px;"></select>
+                </div>
+                
+                <video id="cameraFeed" autoplay playsinline style="width: 100%; height: auto; background: black;"></video>
+                <canvas id="photoCanvas" style="display: none;"></canvas>
+                <div style="display: flex; justify-content: center; margin-top: 15px;">
+                  <button id="captureBtn" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; margin: 0 10px;">Capture</button>
+                  <button id="switchCameraBtn" style="padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 5px; margin: 0 10px;">Switch Camera</button>
+                  <button id="flashBtn" style="padding: 10px 20px; background: #FF9800; color: white; border: none; border-radius: 5px; margin: 0 10px;">Flash OFF</button>
+                  <button onclick="closeCamera()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 5px; margin: 0 10px;">Cancel</button>
+                </div>
               </div>
             </div>
             
@@ -247,119 +253,8 @@
                 let autoScanTimeout = null;
                 let currentMode = '';
                 let flashEnabled = false;
-                let currentCamera = 'environment'; // 'environment' للخلفية، 'user' للأمامية
-                let currentLens = 'default'; // 'default' للعدسة الأساسية، 'ultrawide' للواسعة
-                
-                // ... (جميع الدوال السابقة تبقى كما هي ما عدا الدوال المتعلقة بالكاميرا) ...
-                
-                // فتح الكاميرا مع التحسينات الجديدة
-                async function openCamera(mode) {
-                    currentMode = mode;
-                    isAutoScan = mode === 'scan';
-                    document.getElementById('modalTitle').textContent = mode === 'scan' ? 'المسح التلقائي للوصفة الطبية' : 'التقاط صورة الوصفة الطبية';
-                    document.getElementById('cameraModal').style.display = 'flex';
-                    
-                    try {
-                        await initCamera();
-                        
-                        if (isAutoScan) {
-                            document.getElementById('captureBtn').style.display = 'none';
-                            autoScanTimeout = setTimeout(() => {
-                                captureImage();
-                            }, 3000);
-                        } else {
-                            document.getElementById('captureBtn').style.display = 'block';
-                            document.getElementById('captureBtn').onclick = captureImage;
-                        }
-                    } catch (err) {
-                        console.error('Camera error:', err);
-                        alert('تعذر الوصول إلى الكاميرا. يرجى التحقق من الأذونات.');
-                        closeCamera();
-                    }
-                }
-                
-                // تهيئة الكاميرا مع الخيارات الجديدة
-                async function initCamera() {
-                    closeCamera(); // إغلاق أي كاميرا نشطة
-                    
-                    const constraints = { 
-                        video: { 
-                            facingMode: currentCamera,
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            advanced: []
-                        }, 
-                        audio: false 
-                    };
-                    
-                    // إضافة اختيار العدسة إذا كان متاحاً
-                    if (currentLens === 'default') {
-                        constraints.video.advanced.push({ zoom: 1.0 });
-                    } else if (currentLens === 'ultrawide') {
-                        constraints.video.advanced.push({ zoom: 0.5 });
-                    }
-                    
-                    // تفعيل الفلاش إذا كان مفعلاً
-                    if (flashEnabled && 'torch' in navigator.mediaDevices.getSupportedConstraints()) {
-                        constraints.video.torch = true;
-                    }
-                    
-                    stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    const video = document.getElementById('cameraFeed');
-                    video.srcObject = stream;
-                    
-                    // تحديث واجهة المستخدم بناء على حالة الفلاش
-                    updateFlashUI();
-                }
-                
-                // تبديل بين الكاميرا الأمامية والخلفية
-                async function switchCamera() {
-                    currentCamera = currentCamera === 'environment' ? 'user' : 'environment';
-                    await initCamera();
-                }
-                
-                // تبديل بين العدسات (الأساسية والواسعة)
-                async function switchLens() {
-                    currentLens = currentLens === 'default' ? 'ultrawide' : 'default';
-                    document.getElementById('lensBtn').textContent = currentLens === 'default' ? 'العدسة الأساسية' : 'العدسة الواسعة';
-                    await initCamera();
-                }
-                
-                // تفعيل/إيقاف الفلاش (محسّن)
-                async function toggleFlash() {
-                    if (!stream) return;
-                    
-                    try {
-                        const videoTrack = stream.getVideoTracks()[0];
-                        if (videoTrack && 'torch' in videoTrack.getCapabilities()) {
-                            flashEnabled = !flashEnabled;
-                            await videoTrack.applyConstraints({
-                                advanced: [{torch: flashEnabled}]
-                            });
-                            updateFlashUI();
-                            return true;
-                        } else {
-                            // إذا لم يكن الفلاش مدعوماً، نعرض رسالة للمستخدم
-                            alert('الفلاش غير متاح في هذا الجهاز أو الكاميرا الحالية');
-                            return false;
-                        }
-                    } catch (err) {
-                        console.error('Flash error:', err);
-                        alert('حدث خطأ أثناء محاولة تفعيل الفلاش');
-                        return false;
-                    }
-                }
-                
-                // تحديث واجهة مستخدم الفلاش
-                function updateFlashUI() {
-                    const flashBtn = document.getElementById('flashBtn');
-                    if (stream && stream.getVideoTracks()[0] && 'torch' in stream.getVideoTracks()[0].getCapabilities()) {
-                        flashBtn.style.display = 'inline-block';
-                        flashBtn.textContent = flashEnabled ? 'إضاءة ON' : 'إضاءة OFF';
-                    } else {
-                        flashBtn.style.display = 'none';
-                    }
-                }
+                let currentCameraId = '';
+                let cameras = [];
                 
                 // تهيئة النموذج بالقيم المحفوظة
                 window.addEventListener('DOMContentLoaded', () => {
@@ -371,6 +266,171 @@
                         }
                     });
                 });
+            
+                // دالة للحصول على قائمة الكاميرات المتاحة
+                async function getAvailableCameras() {
+                    try {
+                        // الحصول على أجهزة الوسائط
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        
+                        // تصفية أجهزة الفيديو فقط
+                        cameras = devices.filter(device => device.kind === 'videoinput');
+                        
+                        // إذا كان هناك أكثر من كاميرا، نعرض قائمة الاختيار
+                        if (cameras.length > 1) {
+                            const cameraSelect = document.getElementById('cameraSelect');
+                            cameraSelect.innerHTML = '';
+                            
+                            cameras.forEach((camera, index) => {
+                                const option = document.createElement('option');
+                                option.value = camera.deviceId;
+                                option.text = camera.label || `Camera ${index + 1}`;
+                                cameraSelect.appendChild(option);
+                            });
+                            
+                            document.getElementById('cameraSelectContainer').style.display = 'block';
+                        } else {
+                            document.getElementById('cameraSelectContainer').style.display = 'none';
+                        }
+                        
+                        return cameras;
+                    } catch (err) {
+                        console.error('Error enumerating cameras:', err);
+                        return [];
+                    }
+                }
+                
+                // دالة لتبديل الكاميرا
+                async function switchCamera() {
+                    if (cameras.length < 2) return;
+                    
+                    const cameraSelect = document.getElementById('cameraSelect');
+                    const currentIndex = cameras.findIndex(cam => cam.deviceId === currentCameraId);
+                    const nextIndex = (currentIndex + 1) % cameras.length;
+                    const nextCameraId = cameras[nextIndex].deviceId;
+                    
+                    cameraSelect.value = nextCameraId;
+                    await startCamera(nextCameraId);
+                }
+            
+                // فتح الكاميرا مع تحديد الكاميرا المطلوبة
+                async function startCamera(deviceId = '') {
+                    // إيقاف الكاميرا الحالية إذا كانت تعمل
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                    
+                    try {
+                        const constraints = { 
+                            video: { 
+                                deviceId: deviceId ? { exact: deviceId } : undefined,
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 },
+                                facingMode: deviceId ? undefined : 'environment'
+                            }, 
+                            audio: false 
+                        };
+                        
+                        // تفعيل الفلاش إذا كان متاحاً ومفعل
+                        if (flashEnabled && 'torch' in navigator.mediaDevices.getSupportedConstraints()) {
+                            constraints.video.torch = true;
+                        }
+                        
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        const video = document.getElementById('cameraFeed');
+                        video.srcObject = stream;
+                        
+                        // حفظ معرف الكاميرا الحالية
+                        const videoTrack = stream.getVideoTracks()[0];
+                        if (videoTrack) {
+                            currentCameraId = videoTrack.getSettings().deviceId;
+                        }
+                        
+                        // تحديث زر الفلاش بناء على إمكانيات الكاميرا
+                        updateFlashButton();
+                        
+                    } catch (err) {
+                        console.error('Camera error:', err);
+                        alert('Could not access camera. Please check permissions.');
+                        closeCamera();
+                    }
+                }
+            
+                // تحديث حالة زر الفلاش
+                function updateFlashButton() {
+                    if (!stream) return;
+                    
+                    const videoTrack = stream.getVideoTracks()[0];
+                    const flashBtn = document.getElementById('flashBtn');
+                    
+                    if (videoTrack && 'torch' in videoTrack.getCapabilities()) {
+                        flashBtn.style.display = 'block';
+                        flashBtn.textContent = flashEnabled ? 'Flash ON' : 'Flash OFF';
+                    } else {
+                        flashBtn.style.display = 'none';
+                        flashEnabled = false;
+                    }
+                }
+            
+                // فتح الكاميرا للتقاط أو مسح
+                async function openCamera(mode) {
+                    currentMode = mode;
+                    isAutoScan = mode === 'scan';
+                    document.getElementById('modalTitle').textContent = mode === 'scan' ? 'Auto Scanning Prescription' : 'Capture Prescription';
+                    document.getElementById('cameraModal').style.display = 'flex';
+                    
+                    // الحصول على الكاميرات المتاحة
+                    await getAvailableCameras();
+                    
+                    // بدء الكاميرا
+                    await startCamera();
+                    
+                    // إعداد الأزرار
+                    if (isAutoScan) {
+                        document.getElementById('captureBtn').style.display = 'none';
+                        autoScanTimeout = setTimeout(() => {
+                            captureImage();
+                        }, 3000); // تأخير 3 ثواني للمسح التلقائي
+                    } else {
+                        document.getElementById('captureBtn').style.display = 'block';
+                        document.getElementById('captureBtn').onclick = captureImage;
+                    }
+                    
+                    // إعداد زر تبديل الكاميرا
+                    document.getElementById('switchCameraBtn').onclick = switchCamera;
+                    
+                    // إعداد زر الفلاش
+                    document.getElementById('flashBtn').onclick = toggleFlash;
+                    
+                    // إعداد اختيار الكاميرا من القائمة
+                    document.getElementById('cameraSelect').onchange = async function() {
+                        await startCamera(this.value);
+                    };
+                }
+            
+                // تفعيل/إيقاف الفلاش
+                async function toggleFlash() {
+                    if (!stream) return;
+                    
+                    try {
+                        const videoTrack = stream.getVideoTracks()[0];
+                        if (videoTrack && 'torch' in videoTrack.getCapabilities()) {
+                            flashEnabled = !flashEnabled;
+                            await videoTrack.applyConstraints({
+                                advanced: [{torch: flashEnabled}]
+                            });
+                            document.getElementById('flashBtn').textContent = flashEnabled ? 'Flash ON' : 'Flash OFF';
+                            return true;
+                        }
+                    } catch (err) {
+                        console.error('Flash error:', err);
+                    }
+                    return false;
+                }
+            
+                // بقية الدوال كما هي (performOCR, preprocessPrescriptionImage, parsePrescription, formatNumber, 
+                // handleImageUpload, startAutoScan, captureImage, enhancePrescriptionImage, closeCamera,
+                // validateAndContinue, isValidPrescriptionValue)
 
                 // تحسين دقة استخراج النص لمقاسات النظارات فقط
                 async function performOCR(imageData) {
