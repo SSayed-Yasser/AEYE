@@ -6,14 +6,15 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">  <!-- onlin icons -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./css-files/body-html.css"> <!-- css file loc -->
-  <link rel="stylesheet" href="./css-files/index-css/header.css"> <!-- css file loc -->
+  <link rel="stylesheet" href="./css-files/body-html.css" as="style">
+  <link rel="stylesheet" href="./css-files/index-css/header.css" as="style">
   <link rel="stylesheet" href="./css-files/buttons.css"> <!-- css file loc -->
   <link rel="stylesheet" href="./css-files/index-css/slids.css"> <!-- css file loc -->
   <link rel="stylesheet" href="./css-files/index-css/new.css"> <!-- css file loc -->
   <link rel="stylesheet" href="./css-files/index-css/acc-offer.css"> <!-- css file loc -->
   <link rel="stylesheet" href="./css-files/index-css/box.css"> <!-- css file loc -->
   <link rel="stylesheet" href="./css-files/index-css/footer.css"> <!-- css file loc -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
       <!-- header -->
@@ -34,13 +35,13 @@
             <p class="quantity" id="cart-count">2</p>
           </div>
           <a href="orders.html">
-            <img src="./image/icons/delivery-truck.png" alt="" class="img-header-login" style="width: 35px; height: 33px;">
+            <img src="./image/icons/delivery-truck.png" alt="" class="img-header-login" style="width: 35px; height: 33px;" loading="lazy">
           </a>
           <a href="login.html" id="adduser">
-          <img src="./image/icons/add-user.png" alt="" class="img-header-login">
+          <img src="./image/icons/add-user.png" alt="" class="img-header-login" loading="lazy">
           </a>
           <a href="account.html" id="user" style="display: none;">
-            <img src="./image/icons/user.png" alt="" class="img-header-login">
+            <img src="./image/icons/user.png" alt="" class="img-header-login" loading="lazy">
           </a>
           <script>
             if (localStorage.getItem('loginmethod') === '555') {
@@ -56,21 +57,21 @@
       <!-- slideshow -->
       <div class="slideshow-container">
         <div class="mySlides fade">
-          <img src="./image/slide-show/img-1.jpg" style="width:100%" class="imge-offers">
+          <img src="./image/slide-show/img-1.jpg" style="width:100%" class="imge-offers" loading="lazy">
         </div>
         <div class="mySlides fade">
-          <img src="./image/slide-show/img-2.jpg" style="width:100%" class="imge-offers">
+          <img src="./image/slide-show/img-2.jpg" style="width:100%" class="imge-offers" loading="lazy">
         </div>
         <div class="mySlides fade">
-          <img src="./image/slide-show/img-3.jpg" style="width:100%" class="imge-offers">
+          <img src="./image/slide-show/img-3.jpg" style="width:100%" class="imge-offers" loading="lazy"> 
         </div>
         <div class="mySlides fade">
-          <img src="./image/slide-show/img-4.jpg" style="width:100%" class="imge-offers">
+          <img src="./image/slide-show/img-4.jpg" style="width:100%" class="imge-offers" loading="lazy">
         </div>
       </div>
     
       <div class="slideshow-img fade">
-        <img src="./image/icons/down.png" alt="" class="down-img">
+        <img src="./image/icons/down.png" alt="" class="down-img" loading="lazy">
       </div>  
     
       <div class="slide-contant">
@@ -250,47 +251,131 @@
     
 
       <!-- footer -->
-      <div class="over-footer">
-        <div class="contant-o">
-          <img src="./image/accs/accs-2.jpg" alt="" class="te3bt-img">
-          <div class="te3bt">
-            <h1 style="color: red; font-size: 250%; margin: 0;">,,</h1>
-            <p style="margin-top: 5px; font-size: 80%; margin-bottom: 0;">
-              The one-year warranty covers rust protection and leather 
-              deterioration only. Other damages are not included.
-            </p>
-              <p style="font-size: 80%; color: #0000008c; margin: 0;">-A EYE</p>
+      <!-- Full Width Modern Footer -->
+      <footer class="fullwidth-footer" style="margin-top: 50px;">
+        <!-- Warranty Section -->
+        <div class="warranty-section">
+          <div class="warranty-container">
+            <img src="./image/accs/accs-2.jpg" alt="Warranty" class="warranty-img">
+            <div class="warranty-text">
+              <span class="quote-mark">,,</span>
+              <p class="warranty-desc">
+                The one-year warranty covers rust protection and leather deterioration only. 
+                Other damages are not included.
+              </p>
+              <p class="warranty-signature">- A EYE</p>
+            </div>
           </div>
         </div>
-      </div> 
-      
-      <div class="footer">
-        <div class="logo-text">
-          <img src="./image/logos/logo1.png" alt="" class="img-fo">
-          <h3 class="h3-footer">A EYE</h3>
+        
+        <!-- Main Footer Content -->
+        <div class="footer-main-content">
+          <div class="footer-row">
+            <!-- Brand Info -->
+            <div class="footer-col brand-col">
+              <div class="brand-info">
+                <img src="./image/logos/logo1.png" alt="A EYE Logo" class="footer-logo">
+                <h3 class="brand-name">A EYE</h3>
+              </div>
+              <p class="brand-tagline">Premium Eyewear Solutions</p>
+            </div>
+            
+            <!-- Contact Info -->
+            <div class="footer-col contact-col">
+              <h4 class="footer-title">Contact Us</h4>
+              <div class="contact-item">
+                <i class="fas fa-phone"></i>
+                <div class="contact-details">
+                  <a href="tel:01120726090">01120726090</a>
+                  <a href="tel:01004948090">01004948090</a>
+                </div>
+              </div>
+              <div class="contact-item whatsapp-item">
+                <i class="fab fa-whatsapp"></i>
+                <a href="https://wa.me/201120726090">01120726090 (WhatsApp)</a>
+              </div>
+            </div>
+            
+            <!-- Social Media -->
+            <div class="footer-col social-col">
+              <h4 class="footer-title">Follow Us</h4>
+              <div class="social-links">
+                <a href="https://facebook.com/SayedYasser" class="social-link fb-link">
+                  <i class="fab fa-facebook-f"></i>
+                  <span>Facebook</span>
+                </a>
+                <a href="https://t.me/Sayed_Yasser_3" class="social-link tg-link">
+                  <i class="fab fa-telegram-plane"></i>
+                  <span>Telegram</span>
+                </a>
+                <a href="https://instagram.com/sayed_yasser_11" class="social-link ig-link">
+                  <i class="fab fa-instagram"></i>
+                  <span>Instagram</span>
+                </a>
+              </div>
+            </div>
+            
+            <!-- Color Palette -->
+            <div class="footer-col colors-col">
+              <h4 class="footer-title">Color Palette</h4>
+              <div class="color-grid">
+                <div class="color-card" style="background-color: #002b55;" data-color="#002b55">
+                  <span class="color-hex">#002b55</span>
+                </div>
+                <div class="color-card" style="background-color: #00162c;" data-color="#00162c">
+                  <span class="color-hex">#00162c</span>
+                </div>
+                <div class="color-card" style="background-color: #9f1300;" data-color="#9f1300">
+                  <span class="color-hex">#9f1300</span>
+                </div>
+                <div class="color-card" style="background-color: #6d0d00;" data-color="#6d0d00">
+                  <span class="color-hex">#6d0d00</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="cont01">
-            <div class="item item-1">
-                <div class="item item-01"></div>
-                <p class="pp01">#002b55</p>
-            </div>
-            <div class="item item-2">
-                <div class="item item-02"></div>
-                <p class="pp02">#00162c</p>
-            </div>
-            <div class="item item-3">
-                <div class="item item-03"></div>
-                <p class="pp03">#9f1300</p>
-            </div>
-            <div class="item item-4">
-                <div class="item item-04"></div>
-                <p class="pp04">#6d0d00</p>
-            </div>
+        
+        <!-- Copyright -->
+        <div class="copyright-section">
+          <p>&copy; 2023 A EYE. All rights reserved.</p>
         </div>
-        <div class="cont011">
-          <p class="pp05" id="webc">Website Colors</p>
-        </div>
-      </div>
+        <script>
+         document.addEventListener('DOMContentLoaded', function() {
+          // Color copy functionality
+          const colorCards = document.querySelectorAll('.color-card');
+          colorCards.forEach(card => {
+            card.addEventListener('click', function() {
+              const colorCode = this.getAttribute('data-color');
+              navigator.clipboard.writeText(colorCode).then(() => {
+                const hexElement = this.querySelector('.color-hex');
+                const originalText = hexElement.textContent;
+                hexElement.textContent = 'Copied!';
+                hexElement.style.opacity = '1';
+                
+                setTimeout(() => {
+                  hexElement.textContent = originalText;
+                  setTimeout(() => {
+                    hexElement.style.opacity = '0';
+                  }, 1000);
+                }, 2000);
+              });
+            });
+          });
+          
+          // Social media hover effects
+          const socialLinks = document.querySelectorAll('.social-link');
+          socialLinks.forEach(link => {
+            link.addEventListener('mouseenter', function() {
+              this.style.transform = 'translateX(5px)';
+            });
+            link.addEventListener('mouseleave', function() {
+              this.style.transform = 'translateX(0)';
+            });
+          });
+        });
+        </script>
+      </footer>
       <!-- footer -->
 
     </div>
@@ -305,4 +390,12 @@
 <script src="./js-filse/index-js/slid.js"></script>
 <script type="module" src="./js-filse/index-js/new.js"></script>
 <script type="module" src="./js-filse/index-js/acc.-offers.js"></script>
+<script>
+  // Add loaded class to body when page is fully loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      document.body.classList.add('loaded');
+    }, 100);
+  });
+</script>
 </html>

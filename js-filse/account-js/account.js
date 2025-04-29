@@ -112,3 +112,29 @@ document.getElementById('deleteAccountButton').addEventListener('click', async (
       }
   }
 });
+
+
+// Admin credentials
+const adminEmail = "sayedyassersy1@gmail.com";
+const adminEmail1 = "rawanahmedd30@gmail.com";
+
+function checkAdminAccess() {
+  const userData = JSON.parse(localStorage.getItem('userData'));
+  const adminLink = document.querySelector('a[href="control.html"]');
+
+  if (!userData || !userData.email) {
+    showErrorMessage("No user is logged in. Please log in first.");
+    adminLink.style.display = "none";
+    return;
+  }
+
+  // Check if the logged-in user is an admin
+  if (userData.email === adminEmail || userData.email === adminEmail1) {
+    adminLink.style.display = "block";
+  } else {
+    adminLink.style.display = "none";
+  }
+}
+
+// Call the function when the page loads
+window.onload = checkAdminAccess;

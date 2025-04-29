@@ -1,0 +1,557 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>A-EYE</title> <!-- web name -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <LInk rel="icon" href="./image/logos/logo-02.png" type="image/x-icon"> <!-- web icon -->
+  <link rel="stylesheet" href="./css-files/control-css/control.css"> <!-- css file loc -->
+</head>
+<body id="sayeds">
+  <!-- Mobile Menu Button -->
+  <div class="menu-btn" id="menuBtn">
+    <i class="fas fa-bars"></i>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h1>A-FYE</h1>
+    </div>
+    <ul class="sidebar-menu">
+      <li onclick="window.location.href = './index.html';"><a href="#"><i class="fas fa-home"></i>Home</a></li>
+      <li onclick="window.location.href = './settings.html';"><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+      <li onclick="
+        document.getElementById('Dashboard').style.display = 'block';
+        document.getElementById('Orders').style.display = 'none';
+        document.getElementById('Users').style.display = 'none';
+        document.getElementById('Products').style.display = 'none';
+        document.getElementById('AddProducts').style.display = 'none';
+        document.getElementById('admins').style.display = 'none';
+      "><a href="#"><i class="fas fa-tachometer-alt"></i>Dashboard</a></li>
+      <li onclick="
+        document.getElementById('Dashboard').style.display = 'none';
+        document.getElementById('Orders').style.display = 'block';
+        document.getElementById('Users').style.display = 'none';
+        document.getElementById('Products').style.display = 'none';
+        document.getElementById('AddProducts').style.display = 'none';
+        document.getElementById('admins').style.display = 'none';
+      "><a href="#"><i class="fas fa-Clipboard "></i>Orders</a></li>
+      <li onclick="
+        document.getElementById('Dashboard').style.display = 'none';
+        document.getElementById('Orders').style.display = 'none';
+        document.getElementById('Users').style.display = 'block';
+        document.getElementById('Products').style.display = 'none';
+        document.getElementById('AddProducts').style.display = 'none';
+        document.getElementById('admins').style.display = 'none';
+      "><a href="#"><i class="fas fa-user"></i>Users</a></li>
+      <li onclick="
+        document.getElementById('Dashboard').style.display = 'none';
+        document.getElementById('Orders').style.display = 'none';
+        document.getElementById('Users').style.display = 'none';
+        document.getElementById('Products').style.display = 'block';
+        document.getElementById('AddProducts').style.display = 'none';
+        document.getElementById('admins').style.display = 'none';
+        "><a href="#"><i class="fas fa-box"></i>Products</a></li>
+      <li onclick="
+        document.getElementById('Dashboard').style.display = 'none';
+        document.getElementById('Orders').style.display = 'none';
+        document.getElementById('Users').style.display = 'none';
+        document.getElementById('Products').style.display = 'none';
+        document.getElementById('AddProducts').style.display = 'block';
+        document.getElementById('admins').style.display = 'none';
+      "><a href="#"><i class="fas fa-plus-circle"></i>Add Products</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" id="mainContent">
+
+    <div class="Dashboard" id="Dashboard">
+      <!-- Time Period Selector -->
+      <div class="time-period-selector">
+        <button class="btn1 time-period-btn active" data-period="day">Today</button>
+        <button class="btn2 time-period-btn" data-period="month">This Month</button>
+        <button class="btn3 time-period-btn" data-period="year">This Year</button>
+        <button class="btn4 time-period-btn" data-period="all">All Time</button>
+      </div>
+    
+      <div class="dashboard-cards">
+        <div class="card">
+          <div class="card-header">
+            <h3>Total Sales</h3>
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+          <div class="card-value" id="total-sales">$0</div>
+          <div class="card-footer" id="sales-period">Last 24 Hours</div>
+          <div class="card-chart">
+            <canvas id="sales-chart"></canvas>
+          </div>
+        </div>
+    
+        <div class="card">
+          <div class="card-header">
+            <h3>Total Expenses</h3>
+            <i class="fas fa-money-bill-wave"></i>
+          </div>
+          <div class="card-value" id="total-expenses">$0</div>
+          <div class="card-footer" id="expenses-period">Last 24 Hours</div>
+          <div class="card-chart">
+            <canvas id="expenses-chart"></canvas>
+          </div>
+        </div>
+    
+        <div class="card">
+          <div class="card-header">
+            <h3>Total Income</h3>
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="card-value pulse" id="total-income">$0</div>
+          <div class="card-footer" id="income-period">Last 24 Hours</div>
+          <div class="card-chart">
+            <canvas id="income-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    
+      <div class="charts-row">
+        <div class="chart-container chart22">
+          <h3>Sales Over Time</h3>
+          <canvas id="sales-trend-chart"></canvas>
+        </div>
+        <div class="chart-container chart44">
+          <h3>Income vs Expenses</h3>
+          <canvas id="comparison-chart"></canvas>
+        </div>
+      </div>
+    
+      <div class="recent-orders">
+        <h2>Recent Orders</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="recent-orders-body">
+            <!-- Orders will be populated here by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="status-section">
+        <strong>Status:</strong> <span id="system-status">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Orders -->
+      <div class="Orders" id="Orders">
+        <div class="orderss" id="ordersss">
+          <div id="admin-container" class="hidden">
+            <h1>Admin Panel</h1>
+            <div class="filter-buttons">
+              <button class="time-period-btn btn1" onclick="filterOrders('all')">View all</button>
+              <button class="time-period-btn btn2" onclick="filterOrders('manufacturing')">Manufacturing</button>
+              <button class="time-period-btn btn3" onclick="filterOrders('packing')">Packing</button>
+              <button class="time-period-btn btn4" onclick="filterOrders('shipping')">Shipping</button>
+            </div>
+              <div id="orders-list"></div>
+            </div>   
+        
+            <div id="error-message" class="hidden">
+              <h1>Access Denied: Admin Only</h1>  
+            </div>    
+          </div>
+
+      </div>
+
+    <!-- Users -->
+      <div class="Users" id="Users">
+        <div class="user" id="userss">
+          <div id="admin-container1" class="hidden">
+            <h1>Admin Panel</h1>
+            <div id="users-list"></div>
+          </div>   
+      
+          <div id="error-message1" class="hidden">
+            <h1>Access Denied: Admin Only</h1>  
+          </div>    
+        </div>
+      </div>
+
+    <!-- Products -->
+      <div class="Products" id="Products">    
+        <div class="items-continar" id="items-continar">
+        <div class="items" id="items">
+          <div class="container">
+            <h1>Product Management</h1>
+            <div class="search-container">
+              <input type="text" id="searchById" placeholder="Search by ID">
+              <input type="text" id="searchByName" placeholder="Search by Name">
+            </div>
+            <div class="products-grid" id="productsGrid"></div>
+          </div>
+        
+          <script type="module">
+            // Import Firebase modules
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+            import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        
+            // Firebase configuration
+            const firebaseConfig = {
+              apiKey: "AIzaSyA2Yl1VfdSjLfa3WGEszCOs4uA9vLAJVN0",
+              authDomain: "aeye-52e5c.firebaseapp.com",
+              projectId: "aeye-52e5c",
+              storageBucket: "aeye-52e5c.appspot.com",
+              messagingSenderId: "721877823117",
+              appId: "1:721877823117:web:5e789ac89e2baf9abffcc4",
+              measurementId: "G-4NGC51320Q"
+            };
+        
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+        
+            // Fetch and display products
+            async function fetchProducts() {
+              const productsGrid = document.getElementById('productsGrid');
+              productsGrid.innerHTML = ''; // Clear previous content
+        
+              const querySnapshot = await getDocs(collection(db, 'products'));
+              querySnapshot.forEach((doc) => {
+                const product = doc.data();
+                const productCard = `
+                  <div class="product-card" data-id="${product.id}">
+                    <div class="id">ID: ${product.id}</div>
+                    <img src="${product.img}" alt="${product.name}">
+                    <input type="text" id="name-${product.id}" value="${product.name}" placeholder="Product Name">
+                    <input type="number" id="price-${product.id}" value="${product.price}" placeholder="Price">
+                    <input type="text" id="sale-${product.id}" value="${product.sale}" placeholder="Sale">
+                    <input type="text" id="lens-${product.id}" value="${product.lens}" placeholder="Lens">
+                    <input type="text" id="desc-${product.id}" value="${product.productDesc}" placeholder="Description">
+                    <input type="text" id="img-${product.id}" value="${product.img}" placeholder="Image URL">
+                    <input type="number" id="quantity-${product.id}" value="${product.quantity || 0}" placeholder="Quantity">
+                    <div class="quantity-control">
+                      <input type="number" id="addQuantity-${product.id}" placeholder="Add Quantity">
+                      <button onclick="addQuantity('${product.id}')"><i class="fas fa-plus"></i> Add</button>
+                    </div>
+                    <button onclick="saveChanges('${product.id}')">Save Changes</button>
+                  </div>
+                `;
+                productsGrid.innerHTML += productCard;
+              });
+            }
+        
+            // Add quantity
+            window.addQuantity = function (id) {
+              const quantityInput = document.getElementById(`quantity-${id}`);
+              const addQuantityInput = document.getElementById(`addQuantity-${id}`);
+              const currentQuantity = parseInt(quantityInput.value) || 0;
+              const addQuantity = parseInt(addQuantityInput.value) || 0;
+              quantityInput.value = currentQuantity + addQuantity;
+              addQuantityInput.value = ''; // Clear the input
+            };
+        
+            // Save changes
+            window.saveChanges = async function (id) {
+              const name = document.getElementById(`name-${id}`).value;
+              const price = document.getElementById(`price-${id}`).value;
+              const sale = document.getElementById(`sale-${id}`).value;
+              const lens = document.getElementById(`lens-${id}`).value;
+              const desc = document.getElementById(`desc-${id}`).value;
+              const img = document.getElementById(`img-${id}`).value;
+              const quantity = document.getElementById(`quantity-${id}`).value;
+        
+              try {
+                await updateDoc(doc(db, 'products', id), {
+                  name,
+                  price: parseFloat(price),
+                  sale,
+                  lens,
+                  productDesc: desc,
+                  img,
+                  quantity: parseInt(quantity, 10)
+                });
+                alert('Changes saved successfully!');
+              } catch (error) {
+                console.error('Error updating product:', error);
+                alert('Error saving changes.');
+              }
+            };
+        
+            // Search by ID
+            document.getElementById('searchById').addEventListener('input', async (e) => {
+              const searchTerm = e.target.value.trim();
+              if (searchTerm) {
+                const docRef = doc(db, 'products', searchTerm);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                  const product = docSnap.data();
+                  document.getElementById('productsGrid').innerHTML = `
+                    <div class="product-card" data-id="${product.id}">
+                      <div class="id">ID: ${product.id}</div>
+                      <img src="${product.img}" alt="${product.name}">
+                      <input type="text" id="name-${product.id}" value="${product.name}" placeholder="Product Name">
+                      <input type="number" id="price-${product.id}" value="${product.price}" placeholder="Price">
+                      <input type="text" id="sale-${product.id}" value="${product.sale}" placeholder="Sale">
+                      <input type="text" id="lens-${product.id}" value="${product.lens}" placeholder="Lens">
+                      <input type="text" id="desc-${product.id}" value="${product.productDesc}" placeholder="Description">
+                      <input type="text" id="img-${product.id}" value="${product.img}" placeholder="Image URL">
+                      <input type="number" id="quantity-${product.id}" value="${product.quantity || 0}" placeholder="Quantity">
+                      <div class="quantity-control">
+                        <input type="number" id="addQuantity-${product.id}" placeholder="Add Quantity">
+                        <button onclick="addQuantity('${product.id}')"><i class="fas fa-plus"></i> Add</button>
+                      </div>
+                      <button onclick="saveChanges('${product.id}')">Save Changes</button>
+                    </div>
+                  `;
+                } else {
+                  document.getElementById('productsGrid').innerHTML = '<p>No product found with this ID.</p>';
+                }
+              } else {
+                fetchProducts();
+              }
+            });
+        
+            // Search by name
+            document.getElementById('searchByName').addEventListener('input', async (e) => {
+              const searchTerm = e.target.value.trim().toLowerCase();
+              if (searchTerm) {
+                const querySnapshot = await getDocs(collection(db, 'products'));
+                const productsGrid = document.getElementById('productsGrid');
+                productsGrid.innerHTML = ''; // Clear previous content
+        
+                querySnapshot.forEach((doc) => {
+                  const product = doc.data();
+                  if (product.name.toLowerCase().includes(searchTerm)) {
+                    const productCard = `
+                      <div class="product-card" data-id="${product.id}">
+                        <div class="id">ID: ${product.id}</div>
+                        <img src="${product.img}" alt="${product.name}">
+                        <input type="text" id="name-${product.id}" value="${product.name}" placeholder="Product Name">
+                        <input type="number" id="price-${product.id}" value="${product.price}" placeholder="Price">
+                        <input type="text" id="sale-${product.id}" value="${product.sale}" placeholder="Sale">
+                        <input type="text" id="lens-${product.id}" value="${product.lens}" placeholder="Lens">
+                        <input type="text" id="desc-${product.id}" value="${product.productDesc}" placeholder="Description">
+                        <input type="text" id="img-${product.id}" value="${product.img}" placeholder="Image URL">
+                        <input type="number" id="quantity-${product.id}" value="${product.quantity || 0}" placeholder="Quantity">
+                        <div class="quantity-control">
+                          <input type="number" id="addQuantity-${product.id}" placeholder="Add Quantity">
+                          <button onclick="addQuantity('${product.id}')"><i class="fas fa-plus"></i> Add</button>
+                        </div>
+                        <button onclick="saveChanges('${product.id}')">Save Changes</button>
+                      </div>
+                    `;
+                    productsGrid.innerHTML += productCard;
+                  }
+                });
+        
+                if (productsGrid.innerHTML === '') {
+                  productsGrid.innerHTML = '<p>No product found with this name.</p>';
+                }
+              } else {
+                fetchProducts();
+              }
+            });
+        
+            // Initial fetch
+            fetchProducts();
+          </script>
+        </div>
+      </div>
+      <div id="error-message3" class="hidden">
+        <h1>Access Denied: Admin Only</h1>  
+      </div> 
+      </div>
+
+    <!-- AddProducts -->
+      <div class="AddProducts" id="AddProducts">
+        <div class="product-continar" id="product-continar">
+          <div class="products" id="products">
+            <div class="header123" style="display: block;">
+              <h1 class="uph1">Choose Your Upload <br> Product Type</h1>
+              <div class="upload-style eyeglasses-upload-div" onclick="eyeg()">Eye Glasses</div>
+              <div class="upload-style sun-upload-div" onclick="sung()">Sun Glasses</div>
+              <div class="upload-style accssoris-upload-div" onclick="accg()">Accssoris</div>
+              <div class="upload-style brand-upload-div" onclick="brandg()">Brands</div>
+              <div class="upload-style custmize-upload-div" onclick="custg()">Customize</div>
+              <script>
+                function eyeg() {
+                  localStorage.setItem('uploadMode', 'EyeGlasses');
+    
+                  document.querySelector('.eyeglasses-upload-div').style.display = 'none';
+                  document.querySelector('.sun-upload-div').style.display = 'none';
+                  document.querySelector('.accssoris-upload-div').style.display = 'none';
+                  document.querySelector('.brand-upload-div').style.display = 'none';
+                  document.querySelector('.custmize-upload-div').style.display = 'none';
+                  document.querySelector('.uph1').style.display = 'none';
+    
+                  document.querySelector('.upload-containar').style.display = 'block';
+                  document.getElementById('Product-type-h3').innerText = localStorage.getItem('uploadMode');
+    
+                }
+                function sung() {
+                  localStorage.setItem('uploadMode', 'SunGlasses');
+                  
+                  document.querySelector('.eyeglasses-upload-div').style.display = 'none';
+                  document.querySelector('.sun-upload-div').style.display = 'none';
+                  document.querySelector('.accssoris-upload-div').style.display = 'none';
+                  document.querySelector('.brand-upload-div').style.display = 'none';
+                  document.querySelector('.custmize-upload-div').style.display = 'none';
+                  document.querySelector('.uph1').style.display = 'none';
+    
+                  document.querySelector('.upload-containar').style.display = 'block';
+                  document.getElementById('Product-type-h3').innerText = localStorage.getItem('uploadMode');
+                }
+                function accg() {
+                  localStorage.setItem('uploadMode', 'Accssoris');
+                  
+                  document.querySelector('.eyeglasses-upload-div').style.display = 'none';
+                  document.querySelector('.sun-upload-div').style.display = 'none';
+                  document.querySelector('.accssoris-upload-div').style.display = 'none';
+                  document.querySelector('.brand-upload-div').style.display = 'none';
+                  document.querySelector('.custmize-upload-div').style.display = 'none';
+                  document.querySelector('.uph1').style.display = 'none';
+    
+                  document.querySelector('.upload-containar').style.display = 'block';
+                  document.getElementById('Product-type-h3').innerText = localStorage.getItem('uploadMode');
+                }
+                function brandg() {
+                  localStorage.setItem('uploadMode', 'Brand');
+                  
+                  document.querySelector('.eyeglasses-upload-div').style.display = 'none';
+                  document.querySelector('.sun-upload-div').style.display = 'none';
+                  document.querySelector('.accssoris-upload-div').style.display = 'none';
+                  document.querySelector('.brand-upload-div').style.display = 'none';
+                  document.querySelector('.custmize-upload-div').style.display = 'none';
+                  document.querySelector('.uph1').style.display = 'none';
+    
+                  document.querySelector('.upload-containar').style.display = 'block';
+                  document.getElementById('Product-type-h3').innerText = localStorage.getItem('uploadMode');
+                }
+                function custg() {
+                  localStorage.setItem('uploadMode', 'Customize');
+                  
+                  document.querySelector('.eyeglasses-upload-div').style.display = 'none';
+                  document.querySelector('.sun-upload-div').style.display = 'none';
+                  document.querySelector('.accssoris-upload-div').style.display = 'none';
+                  document.querySelector('.brand-upload-div').style.display = 'none';
+                  document.querySelector('.custmize-upload-div').style.display = 'none';
+                  document.querySelector('.uph1').style.display = 'none';
+    
+                  document.querySelector('.upload-containar').style.display = 'block';
+                  document.getElementById('Product-type-h3').innerText = localStorage.getItem('uploadMode');
+                }
+              </script>
+            </div>
+            
+    
+            <!-- containar -->
+            <div class="upload-containar" id="upload-containar" style="display: none;">
+              <h1 class="rawan">Add Your Product<br>Informtion</h1>
+              <div class="line1">
+                <h3 class="h3-pr">Product Type:&nbsp;&nbsp;</h3>
+                <h3 id="Product-type-h3"></h3>
+              </div>
+              <div class="line">
+                <h3 class="h3-pr">Product id:&nbsp;&nbsp;</h3>
+                <input class="Name" id="iderror" type="text">
+              </div>
+              <div class="line">
+                <h3 class="h3-pr">Product Name:&nbsp;&nbsp;</h3>
+                <input class="Name" id="nameerror" type="text">
+              </div>
+              <div class="line">
+                <h3 class="h3-pr">Product Quantity:&nbsp;&nbsp;</h3>
+                <input class="Name" id="quantityerror" type="text">
+              </div>
+              <div class="line">
+                <h3 class="h3-pr">Product Price:&nbsp;&nbsp;</h3>
+                <input class="Name" id="priceerror" type="text">
+              </div>
+              <div class="line">
+                <h3 class="h3-pr">Product Sale:&nbsp;&nbsp;</h3>
+                <input class="Name" id="saleerror" type="text">
+              </div>
+              <div class="line">
+                <h3 class="h3-pr">Product Lens:&nbsp;&nbsp;</h3>
+                <input class="Name" id="lenserror" type="text">
+              </div>
+              <div class="line">
+                <h3 class="h3-pr">Product Descr:&nbsp;&nbsp;</h3>
+                <input class="Name" id="deserror" type="text">
+              </div>
+              <div class="line">
+                <h3 class="h3-pr">Product Img Url:&nbsp;&nbsp;</h3>
+                <input class="Name" id="imgerror" type="text">
+              </div>
+              <!-- erorr messege -->
+              <div class="error-massage-1" id="error-massage-12">
+                <p style="margin-bottom: 10px;">Error Message Well be here please fill all felds</p>
+              </div>
+              <button id="upload-button" class="upload-bt button-animation2">Upload</button>
+            </div>
+          </div>
+        </div>
+        <!-- erorr messege -->
+        <div id="error-message2" class="hidden">
+          <h1>Access Denied: Admin Only</h1>  
+        </div> 
+      </div>
+
+    <!-- admins -->
+    <div class="admins" id="admins">
+      
+    </div>
+
+    <script>
+      document.getElementById('Dashboard').style.display = 'block';
+      document.getElementById('Orders').style.display = 'none';
+      document.getElementById('Users').style.display = 'none';
+      document.getElementById('Products').style.display = 'none';
+      document.getElementById('AddProducts').style.display = 'none';
+    </script>
+  </div>
+  
+</body>
+<script type="module" src="./js-filse/control-js/control.js"></script>
+<script type="module" src="./js-filse/control-js/admin.js"></script>
+<script>
+  // Mobile Menu Toggle
+  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.getElementById('mainContent');
+
+  menuBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+      menuBtn.innerHTML = sidebar.classList.contains('active') ? 
+          '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+  });
+
+  // Close sidebar when clicking outside on mobile
+  document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768 && 
+          !sidebar.contains(e.target) && 
+          !menuBtn.contains(e.target)) {
+          sidebar.classList.remove('active');
+          menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+      }
+  });
+
+  // Simulate data updates
+  setInterval(() => {
+      const incomeElement = document.querySelector('.card:nth-child(3) .card-value');
+      if (incomeElement.classList.contains('pulse')) {
+          incomeElement.classList.remove('pulse');
+          setTimeout(() => incomeElement.classList.add('pulse'), 50);
+      }
+  }, 5000);
+</script>
+</html>
