@@ -117,6 +117,7 @@ document.getElementById('deleteAccountButton').addEventListener('click', async (
 // Admin credentials
 const adminEmail = "sayedyassersy1@gmail.com";
 const adminEmail1 = "rawanahmedd30@gmail.com";
+const adminEmail13 = "seifessam828@gmail.com";
 
 function checkAdminAccess() {
   const userData = JSON.parse(localStorage.getItem('userData'));
@@ -129,7 +130,7 @@ function checkAdminAccess() {
   }
 
   // Check if the logged-in user is an admin
-  if (userData.email === adminEmail || userData.email === adminEmail1) {
+  if (userData.email === adminEmail || userData.email === adminEmail1 || userData.email === adminEmail13) {
     adminLink.style.display = "block";
   } else {
     adminLink.style.display = "none";
