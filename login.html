@@ -61,7 +61,7 @@
             <p class="quantity" id="cart-count">2</p>
           </div>
           <a href="orders.html">
-            <img src="./image/icons/delivery-truck.png" alt="" class="img-header-login">
+            <img src="./image/icons/delivery-truck.png" alt="" class="img-header-login" style="width: 30px; height: 30px; margin-left: -10px;" loading="lazy">
           </a>
           <a href="login.html" id="adduser">
             <img src="./image/icons/add-user.png" alt="" class="img-header-login">
@@ -220,7 +220,114 @@
               </div>
               <progress id="progressBar" value="0" max="100" style="margin-left: 15%; width: 70%; margin-top: 0;"></progress>
               <p id="errorMessage" style="text-align: left; margin-bottom: 5px; margin-left: 17%; width: 70%; color: red; margin-top: 5px;">Please fill in all fields, and if you wanna skip, add all 0</p>
-              <button class="sssggssddss login-button widthbut" onclick="validateAndContinue()">Continue</button>
+              <button id="ssssssssssssssss3" class="sssggssddss login-button widthbut" onclick="
+              validateAndContinue();
+              function validateAndContinue() {
+                  // Define all prescription fields with their IDs and whether they're axis fields
+                  const fields = [
+                      { id: 'odSp', isAxis: false },  // Right Eye Sphere
+                      { id: 'odCy', isAxis: false },  // Right Eye Cylinder
+                      { id: 'odAx', isAxis: true },   // Right Eye Axis
+                      { id: 'osSp', isAxis: false },  // Left Eye Sphere
+                      { id: 'osCy', isAxis: false },  // Left Eye Cylinder
+                      { id: 'osAx', isAxis: true }    // Left Eye Axis
+                  ];
+                  
+                  let isValid = true;      // Flag to track if all fields are valid
+                  let allEmpty = true;     // Flag to track if all fields are empty
+                  
+                  // Validate each field
+                  fields.forEach(({ id, isAxis }) => {
+                      const el = document.getElementById(id);
+                      const value = el.value.trim();
+                      
+                      if (value === '') {
+                          // Field is empty - mark as invalid
+                          el.style.border = '1px solid red';
+                          isValid = false;
+                      } else if (!isValidPrescriptionValue(value, isAxis)) {
+                          // Field has invalid value - mark as invalid
+                          el.style.border = '1px solid red';
+                          isValid = false;
+                          allEmpty = false;  // At least one field has content
+                      } else {
+                          // Field is valid
+                          el.style.border = '1px solid green';
+                          allEmpty = false;  // At least one field has content
+                      }
+                  });
+                  
+                  const btn = document.getElementById('ssssssssssssssss3');
+                  const errorEl = document.getElementById('errorMessage');
+                  
+                  if (!isValid && allEmpty) {
+                      // CASE 1: All fields are empty - show Skip option
+                      btn.textContent = 'Skip (Set to 0)';
+                      errorEl.textContent = 'All fields are empty. Click to set all to 0.';
+                      errorEl.style.color = 'red';
+                      
+                      // Change button action to set all fields to 0
+                      btn.onclick = function() {
+                          fields.forEach(({ id }) => {
+                              document.getElementById(id).value = '0';
+                              document.getElementById(id).style.border = '1px solid green';
+                          });
+                          
+                          // Reset button to original state
+                          btn.textContent = 'Continue';
+                          errorEl.textContent = '';
+                          
+                          // Restore original button function
+                          btn.onclick = function() {
+                              validateAndContinue();
+                          };
+                      };
+                  } else if (!isValid) {
+                      // CASE 2: Some fields have invalid values (but not all empty) - show error
+                      btn.textContent = 'Continue';
+                      errorEl.textContent = 'Invalid values detected. Please correct them.';
+                      errorEl.style.color = 'red';
+                      
+                      // Keep original validation behavior
+                      btn.onclick = function() {
+                          validateAndContinue();
+                      };
+                  } else {
+                      // CASE 3: All fields are valid - proceed
+                      btn.textContent = 'Continue';
+                      errorEl.textContent = '';
+                      
+                      // Save values to localStorage
+                      localStorage.setItem('odSp', document.getElementById('odSp').value);
+                      localStorage.setItem('odCy', document.getElementById('odCy').value);
+                      localStorage.setItem('odAx', document.getElementById('odAx').value);
+                      localStorage.setItem('osSp', document.getElementById('osSp').value);
+                      localStorage.setItem('osCy', document.getElementById('osCy').value);
+                      localStorage.setItem('osAx', document.getElementById('osAx').value);
+                      
+                      // Move to next section
+                      document.getElementById('part1sinup').style.display = 'none';
+                      document.getElementById('part2sinup').style.display = 'none';
+                      document.getElementById('part3sinup').style.display = 'block';
+                  }
+              }
+          
+              // Function to validate prescription values
+              function isValidPrescriptionValue(value, isAxis) {
+                  if (value === '0') return true;
+                  
+                  if (isAxis) {
+                      // Axis values must be integers between 0-180
+                      const num = parseInt(value);
+                      return !isNaN(num) && num >= 0 && num <= 180;
+                  } else {
+                      // Sphere/Cylinder values must be decimals between -30 and +30 with max 2 decimal places
+                      const num = parseFloat(value);
+                      return !isNaN(num) && num >= -30 && num <= 30 && 
+                            /^[+-]?\d+(\.\d{1,2})?$/.test(value);
+                  }
+              }
+            ">Continue</button>
             </div>
             
             <!-- Camera Modal -->
@@ -943,63 +1050,6 @@
                 openCamera('scan');
             }
 
-            // =============================================
-            // FORM VALIDATION
-            // =============================================
-
-            function validateAndContinue() {
-                const fields = [
-                    { id: 'odSp', isAxis: false },
-                    { id: 'odCy', isAxis: false },
-                    { id: 'odAx', isAxis: true },
-                    { id: 'osSp', isAxis: false },
-                    { id: 'osCy', isAxis: false },
-                    { id: 'osAx', isAxis: true }
-                ];
-                
-                let isValid = true;
-                fields.forEach(({ id, isAxis }) => {
-                    const el = document.getElementById(id);
-                    if (!isValidPrescriptionValue(el.value, isAxis)) {
-                        el.style.border = '1px solid red';
-                        isValid = false;
-                    } else {
-                        el.style.border = '';
-                        localStorage.setItem(id, el.value);
-                    }
-                });
-                
-                const btn = document.querySelector('.login-button');
-                const errorEl = document.getElementById('errorMessage');
-                
-                if (!isValid) {
-                    btn.textContent = 'Skip (Set to 0)';
-                    errorEl.textContent = 'Invalid values detected. Correct or click to set all to 0.';
-                    errorEl.style.color = 'red';
-                    
-                    btn.onclick = () => {
-                        fields.forEach(({ id }) => document.getElementById(id).value = '0');
-                        validateAndContinue();
-                    };
-                } else {
-                    btn.textContent = 'Continue';
-                    errorEl.textContent = '';
-                    btn.onclick = validateAndContinue;
-                }
-            }
-
-            function isValidPrescriptionValue(value, isAxis) {
-                if (value === '0') return true;
-                
-                if (isAxis) {
-                    const num = parseInt(value);
-                    return !isNaN(num) && num >= 0 && num <= 180;
-                } else {
-                    const num = parseFloat(value);
-                    return !isNaN(num) && num >= -30 && num <= 30 && 
-                          /^[+-]?\d+(\.\d{1,2})?$/.test(value);
-                }
-            }
             </script>
 
 
@@ -1020,7 +1070,7 @@
               </div>
               <p id="errorMessage2" style="margin-top: 80px; text-align: left; margin-bottom: 0px; margin-left: 26%; width: 50%;">Please fill in all fields</p>
               <button id="conbu" class="login-button widthbut" onclick="createACC()">Continue</button>
-              <button id="createAcc" class="login-button widthbut" style="display: none;">Create Your Account</button>
+              <button id="createAcc" class="login-button widthbut" style="display: none;">Confirm Your Account</button>
               <script>
                   function createACC() {
                     var phone = document.getElementById('phoneAccc').value;

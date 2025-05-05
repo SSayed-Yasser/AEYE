@@ -1,3 +1,136 @@
+/* Base Animation Styles */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page Load Animations */
+body {
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.header {
+  opacity: 0;
+  animation: fadeIn 0.6s ease-out 0.3s forwards;
+}
+
+.continar {
+  opacity: 0;
+  animation: fadeIn 0.6s ease-out 0.4s forwards;
+}
+
+.left {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s ease-out 0.5s forwards;
+}
+
+.right {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s ease-out 0.6s forwards;
+}
+
+/* Component-specific animations */
+.header-mian {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: fadeUp 0.6s ease-out 0.7s forwards;
+}
+
+.input-laple {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: fadeUp 0.6s ease-out forwards;
+}
+
+/* Staggered animations for input fields */
+.input-laple:nth-child(1) { animation-delay: 0.8s; }
+.input-laple:nth-child(2) { animation-delay: 0.9s; }
+.input-laple:nth-child(3) { animation-delay: 1.0s; }
+.input-laple:nth-child(4) { animation-delay: 1.1s; }
+.input-laple:nth-child(5) { animation-delay: 1.2s; }
+
+.login-button {
+  opacity: 0;
+  animation: fadeIn 0.6s ease-out 1.3s forwards;
+}
+
+.right-contant {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: fadeUp 0.6s ease-out forwards;
+}
+
+/* Staggered animations for right content */
+.right-contant:nth-child(1) { animation-delay: 0.7s; }
+.right-contant:nth-child(2) { animation-delay: 0.9s; }
+.right-contant:nth-child(3) { animation-delay: 1.1s; }
+
+/* Camera modal animations */
+#cameraModal {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.modal-container {
+  transform: scale(0.95);
+  animation: fadeUp 0.3s ease-out forwards;
+}
+
+/* Loading animation */
+#loading {
+  position: relative;
+}
+
+#loading::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0,0,0,0.1);
+  border-radius: 50%;
+  border-top-color: #790000;
+  animation: spin 1s linear infinite;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@keyframes spin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Progress bar animation */
+#progressBar {
+  transition: width 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header {
+    animation-delay: 0.2s;
+  }
+  
+  .continar {
+    animation-delay: 0.3s;
+  }
+  
+  .left, .right {
+    animation-delay: 0.4s;
+  }
+}
 body {
   max-width: 100%;
 }

@@ -1,28 +1,29 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
-  <title>Account</title> <!-- web name -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">  <!-- onlin icons -->
+  <title>Account - AEYE</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./css-files/index-css/header.css"> <!-- css file loc -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./css-files/account-css/account.css">
-  <link rel="stylesheet" href="./css-files/body-html.css"> <!-- css file loc -->
   <script type="module" src="./js-filse/account-js/account.js"></script>
 </head>
 <body>
-  <!-- header -->
+  <!-- Header Section -->
   <div class="header" id="header">
     <div class="logo">
       <h5 class="header-logo-h5">AEYE</h5>
     </div>
     <div class="main-header">
-      <a id="all-glasses-header" href="index.html" class="aa" onclick="allHeader()">Home</a>
-      <a id="all-glasses-header" href="control.html" class="aa" onclick="allHeader()" style="display: none;">Admin</a>
+      <a id="all-glasses-header" href="index.html" class="aa active">Home</a>
+      <a id="all-glasses-header" href="control.html" class="aa" style="display: none;">Admin</a>
     </div>
     <div class="login-button-home">
-      <div class="bage-center" onclick="window.location.href = './checkout.html';" style="margin-right: 10;">
-        <img src="./image/icons/bag.png" alt="" class="header-cart" onclick="">
+      <div class="bage-center" onclick="window.location.href = './checkout.html';">
+        <img src="./image/icons/bag.png" alt="" class="header-cart">
         <p class="quantity" id="cart-count">2</p>
       </div>
       <a href="orders.html">
@@ -42,55 +43,213 @@
       </script>
     </div>
   </div>
-  <!-- header -->
+  
+  <!-- Main Account Content -->
   <div class="account-container">
-    <h2>User Account</h2>
-    <div class="user-info">
-        <label for="email">Email:</label>
-        <p class="pppp" id="email"></p>
-
-        <label for="password">Password:</label>
-        <p class="pppp" id="password"></p>
-
-        <label for="phone">Phone Number:</label>
-        <p class="pppp" id="phone"></p>
-
-        <label for="name">Name:</label>
-        <input type="text" id="name" value="" placeholder="Enter name">
-
-        <label for="address">Address:</label>
-        <input type="text" id="address" value="" placeholder="Enter address">
+    <div class="account-card">
+      <!-- Personal Information Section -->
+      <div class="account-section">
+        <h2>My Account</h2>
+        
+        <div class="user-info">
+          <div class="info-group">
+            <label for="email">Email Address</label>
+            <p class="pppp" id="email">user@example.com</p>
+          </div>
+          
+          <div class="info-group">
+            <label for="password">Password</label>
+            <p class="pppp" id="password">••••••••</p>
+          </div>
+          
+          <div class="info-group">
+            <label for="phone">Phone Number</label>
+            <p class="pppp" id="phone">+1234567890</p>
+          </div>
+          
+          <div class="info-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" value="John Doe" placeholder="Your full name">
+          </div>
+          
+          <div class="info-group">
+            <label for="address">Delivery Address</label>
+            <input type="text" id="address" value="123 Main Street, City" placeholder="Your complete address">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Glasses Prescription Section -->
+      <div class="account-section">
+        <h2>Vision Prescription</h2>
+        
+        <h3>Glasses Measurements</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Eye</th>
+              <th>Sphere</th>
+              <th>Cylinder</th>
+              <th>Axis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Right (OD)</td>
+              <td id="odSp">-2.50</td>
+              <td id="odCy">-1.25</td>
+              <td id="odAx">180</td>
+            </tr>
+            <tr>
+              <td>Left (OS)</td>
+              <td id="osSp">-2.75</td>
+              <td id="osCy">-1.00</td>
+              <td id="osAx">170</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="buttons">
+          <button class="button delete-btn" id="deleteAccountButton">
+            <i class="fas fa-trash-alt"></i> Delete Account
+          </button>
+          <button class="button save-btn" id="saveChangesButton">
+            <i class="fas fa-save"></i> Save
+          </button>
+          <button class="button logout-btn" id="logoutButton">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+        </div>
+      </div>
     </div>
-    <h3>Glasses Measurements</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Eye</th>
-                <th>Sphere</th>
-                <th>Cylinder</th>
-                <th>Axis</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Right (OD)</td>
-                <td id="odSp"></td>
-                <td id="odCy"></td>
-                <td id="odAx"></td>
-            </tr>
-            <tr>
-                <td>Left (OS)</td>
-                <td id="osSp"></td>
-                <td id="osCy"></td>
-                <td id="osAx"></td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="buttons">
-        <button class="button save-btn" id="saveChangesButton">Save Changes</button>
-        <button class="button logout-btn" id="logoutButton">Logout</button>
-        <button class="button delete-btn" id="deleteAccountButton">Delete Account</button>
-    </div>
-</div>
+  </div>
+  
+  <!-- Sunflower Home Button -->
+  <div class="home-button-container">
+    <button class="sunflower-button" onclick="window.location.href='index.html'">
+      <span class="sunflower-tooltip">Return to Home</span>
+    </button>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Initialize cart count on page load
+    function updateCartCount() {
+      const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts')) || [];
+      const cartCount = selectedProducts.reduce((total, product) => total + product.quantity, 0);
+      document.querySelector('#cart-count').textContent = cartCount;
+    }
+    updateCartCount();
+
+    // Display user data from localStorage
+    function displayUserData() {
+      const storedData = localStorage.getItem('userData');
+      if (storedData) {
+          const userData = JSON.parse(storedData);
+
+          // Fill read-only fields
+          document.getElementById('email').textContent = userData.email;
+          document.getElementById('password').textContent = userData.password;
+          document.getElementById('phone').textContent = userData.phone;
+
+          // Fill editable fields
+          document.getElementById('name').value = userData.name;
+          document.getElementById('address').value = userData.address;
+
+          // Fill the table
+          document.getElementById('odSp').innerText = userData.fodSp;
+          document.getElementById('odCy').innerText = userData.fodCy;
+          document.getElementById('odAx').innerText = userData.fodAx;
+          document.getElementById('osSp').innerText = userData.fosSp;
+          document.getElementById('osCy').innerText = userData.fosCy;
+          document.getElementById('osAx').innerText = userData.fosAx;
+      }
+    }
+
+    displayUserData();
+
+    // Save Changes Button Event Listener
+    document.getElementById('saveChangesButton').addEventListener('click', async () => {
+      const name = document.getElementById('name').value;
+      const address = document.getElementById('address').value;
+
+      const user = auth.currentUser;
+      const docRef = doc(db, "users", user.uid);
+
+      try {
+          await updateDoc(docRef, {
+              name: name,
+              address: address
+          });
+
+          const storedData = JSON.parse(localStorage.getItem('userData'));
+          storedData.name = name;
+          storedData.address = address;
+          localStorage.setItem('userData', JSON.stringify(storedData));
+
+          alert('Changes saved successfully!');
+      } catch (error) {
+          console.error('Error saving changes:', error);
+          alert('Failed to save changes. Please try again.');
+      }
+    });
+
+    // Logout Button Event Listener
+    document.getElementById('logoutButton').addEventListener('click', async () => {
+      try {
+          await signOut(auth);
+          localStorage.clear();
+          alert('You have been logged out.');
+          window.location.href = './login.html';
+      } catch (error) {
+          console.error('Error during logout:', error);
+          alert('Failed to logout. Please try again.');
+      }
+    });
+
+    // Delete Account Button Event Listener
+    document.getElementById('deleteAccountButton').addEventListener('click', async () => {
+      if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+          try {
+              const user = auth.currentUser;
+              const userDocRef = doc(db, "users", user.uid);
+
+              await deleteDoc(userDocRef);
+              await deleteUser(user);
+              localStorage.removeItem('loginmethod', '555');
+              alert('Your account has been deleted.');
+              window.location.href = './login.html';
+          } catch (error) {
+              console.error('Error deleting account:', error);
+              alert('Failed to delete account. Please try again.');
+          }
+      }
+    });
+
+    // Admin credentials check
+    const adminEmail = "sayedyassersy1@gmail.com";
+    const adminEmail1 = "rawanahmedd30@gmail.com";
+
+    function checkAdminAccess() {
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      const adminLink = document.querySelector('a[href="control.html"]');
+
+      if (!userData || !userData.email) {
+        adminLink.style.display = "none";
+        return;
+      }
+
+      // Check if the logged-in user is an admin
+      if (userData.email === adminEmail || userData.email === adminEmail1) {
+        adminLink.style.display = "block";
+      } else {
+        adminLink.style.display = "none";
+      }
+    }
+
+    // Call the function when the page loads
+    window.onload = checkAdminAccess;
+  </script>
 </body>
 </html>

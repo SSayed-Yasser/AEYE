@@ -231,3 +231,68 @@
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Color Variables */
+:root {
+  --primary-blue: #1a365d;
+  --dark-blue: #2c5282;
+  --light-blue: #4299e1;
+  --dark-red: #9b2c2c;
+  --light-red: #f56565;
+  --white: #ffffff;
+  --light-gray: #f7fafc;
+  --medium-gray: #e2e8f0;
+  --dark-gray: #4a5568;
+}
+
+
+
+.img-header-login {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.img-header-login:hover {
+  transform: scale(1.1);
+}
+
+.bage-center {
+  position: relative;
+  cursor: pointer;
+}
+
+.header-cart {
+  width: 24px;
+  height: 24px;
+}
+
+.quantity {
+  position: absolute;
+  top: -15px;
+  right: 10px;
+  background-color: var(--light-red);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}

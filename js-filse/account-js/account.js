@@ -54,7 +54,6 @@ function displayUserData() {
 
 displayUserData();
 
-// حفظ التعديلات
 document.getElementById('saveChangesButton').addEventListener('click', async () => {
   const name = document.getElementById('name').value;
   const address = document.getElementById('address').value;
@@ -80,7 +79,6 @@ document.getElementById('saveChangesButton').addEventListener('click', async () 
   }
 });
 
-// تسجيل الخروج
 document.getElementById('logoutButton').addEventListener('click', async () => {
   try {
       await signOut(auth);
@@ -93,7 +91,6 @@ document.getElementById('logoutButton').addEventListener('click', async () => {
   }
 });
 
-// حذف الحساب
 document.getElementById('deleteAccountButton').addEventListener('click', async () => {
   if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       try {
@@ -102,8 +99,7 @@ document.getElementById('deleteAccountButton').addEventListener('click', async (
 
           await deleteDoc(userDocRef);
           await deleteUser(user);
-
-          localStorage.clear();
+          localStorage.removeItem('loginmethod', '555');
           alert('Your account has been deleted.');
           window.location.href = './login.html';
       } catch (error) {
@@ -117,7 +113,6 @@ document.getElementById('deleteAccountButton').addEventListener('click', async (
 // Admin credentials
 const adminEmail = "sayedyassersy1@gmail.com";
 const adminEmail1 = "rawanahmedd30@gmail.com";
-const adminEmail13 = "seifessam828@gmail.com";
 
 function checkAdminAccess() {
   const userData = JSON.parse(localStorage.getItem('userData'));
@@ -130,7 +125,7 @@ function checkAdminAccess() {
   }
 
   // Check if the logged-in user is an admin
-  if (userData.email === adminEmail || userData.email === adminEmail1 || userData.email === adminEmail13) {
+  if (userData.email === adminEmail || userData.email === adminEmail1) {
     adminLink.style.display = "block";
   } else {
     adminLink.style.display = "none";
