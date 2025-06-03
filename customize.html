@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Glasses Try-On</title>
+    <LInk rel="icon" href="./image/logos/logo-02.png" type="image/x-icon"> <!-- web icon -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -220,20 +221,20 @@
                 </button>
                 
                 <div class="glass-options">
-                    <div class="glass-option active" data-glass="glass1.png">
-                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Classic Black">
+                    <div class="glass-option active" data-glass="./image/prodcts/men/men-round-eyeglasses-1.jpg">
+                        <img src="./image/sayed/sayed-1.png" alt="Round Eyeglasses 1">
                     </div>
-                    <div class="glass-option" data-glass="glass2.png">
-                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Round Gold">
+                    <div class="glass-option" data-glass="./image/prodcts/men/men-round-eyeglasses-2.jpg">
+                        <img src="./image/sayed/sayed-2.png" alt="Round Eyeglasses 2">
                     </div>
-                    <div class="glass-option" data-glass="glass3.png">
-                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Aviator">
+                    <div class="glass-option" data-glass="./image/prodcts/men/men-square-eyeglasses-1.jpg">
+                        <img src="./image/sayed/sayed-3.png" alt="Square Eyeglasses 1">
                     </div>
-                    <div class="glass-option" data-glass="glass4.png">
-                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Cat Eye">
+                    <div class="glass-option" data-glass="./image/prodcts/men/men-aviator-eyeglasses-1.jpg">
+                        <img src="./image/sayed/sayed-4.png" alt="Aviator Eyeglasses 1">
                     </div>
-                    <div class="glass-option" data-glass="glass5.png">
-                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Square Frame">
+                    <div class="glass-option" data-glass="./image/prodcts/men/men-cateye-eyeglasses-1.jpg">
+                        <img src="./image/sayed/sayed-5.png" alt="Cat Eye Eyeglasses 1">
                     </div>
                 </div>
             </div>
@@ -242,7 +243,7 @@
     
     <footer>
         <div class="container">
-            <p>Virtual Glasses Try-On &copy; 2023 | Powered by MediaPipe FaceMesh</p>
+            <p>Virtual Glasses Try-On &copy; 2025 | Powered by A-EYE</p>
         </div>
     </footer>
 
@@ -260,11 +261,10 @@
         let camera = null;
         let currentGlasses = null;
         let glassesImage = new Image();
-        let selectedGlass = 'glass1.png';
+        let selectedGlass = './image/sayed/sayed-1.png';
         
         // Initialize glasses
-        glassesImage.crossOrigin = "Anonymous";
-        glassesImage.src = `./image/prodcts/men/men-round-eyeglasses-1.jpg`;
+        glassesImage.src = selectedGlass;
         
         // FaceMesh configuration
         const faceMeshOptions = {
@@ -283,8 +283,7 @@
                 glassOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 selectedGlass = option.getAttribute('data-glass');
-                // In a real app, you would load the selected glasses image
-                glassesImage.src = `./image/prodcts/men/men-round-eyeglasses-1.jpg`;
+                glassesImage.src = selectedGlass;
             });
         });
         
