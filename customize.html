@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Glasses Try-On</title>
+    <title>تجربة النظارات الافتراضية</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -18,7 +18,7 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Tajawal', sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f5f5f5;
@@ -118,6 +118,7 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+            background-color: #f0f0f0;
         }
         
         button {
@@ -191,8 +192,8 @@
 <body>
     <header>
         <div class="container">
-            <h1>Virtual Glasses Try-On</h1>
-            <p>See how different glasses look on your face in real-time</p>
+            <h1>تجربة النظارات الافتراضية</h1>
+            <p>جرب نظارات مختلفة على وجهك في الوقت الحقيقي</p>
         </div>
     </header>
     
@@ -208,7 +209,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/>
                     </svg>
-                    Start Camera
+                    تشغيل الكاميرا
                 </button>
                 
                 <button id="captureButton" disabled>
@@ -216,24 +217,24 @@
                         <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                         <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
                     </svg>
-                    Capture Photo
+                    التقاط صورة
                 </button>
                 
                 <div class="glass-options">
-                    <div class="glass-option active" data-glass="glass1.png">
-                        <img src="https://i.imgur.com/JqYeZ0L.png" alt="Classic Black">
+                    <div class="glass-option active" data-glass="glass1">
+                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="نظارة كلاسيكية سوداء">
                     </div>
-                    <div class="glass-option" data-glass="glass2.png">
-                        <img src="https://i.imgur.com/8QZQZ0L.png" alt="Round Gold">
+                    <div class="glass-option" data-glass="glass2">
+                        <img src="https://i.ibb.co/4W2yL3k/glass2.png" alt="نظارة ذهبية مستديرة">
                     </div>
-                    <div class="glass-option" data-glass="glass3.png">
-                        <img src="https://i.imgur.com/9QZQZ0L.png" alt="Aviator">
+                    <div class="glass-option" data-glass="glass3">
+                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="نظارة طيار">
                     </div>
-                    <div class="glass-option" data-glass="glass4.png">
-                        <img src="https://i.imgur.com/7QZQZ0L.png" alt="Cat Eye">
+                    <div class="glass-option" data-glass="glass4">
+                        <img src="https://i.ibb.co/4W2yL3k/glass2.png" alt="نظارة عين القطة">
                     </div>
-                    <div class="glass-option" data-glass="glass5.png">
-                        <img src="https://i.imgur.com/6QZQZ0L.png" alt="Square Frame">
+                    <div class="glass-option" data-glass="glass5">
+                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="نظارة مربعة الإطار">
                     </div>
                 </div>
             </div>
@@ -242,7 +243,7 @@
     
     <footer>
         <div class="container">
-            <p>Virtual Glasses Try-On &copy; 2023 | Powered by AEYE FaceMesh</p>
+            <p>تجربة النظارات الافتراضية &copy; 2023 | يعمل بتقنية MediaPipe FaceMesh</p>
         </div>
     </footer>
 
@@ -260,18 +261,30 @@
         let camera = null;
         let currentGlasses = null;
         let glassesImage = new Image();
-        let selectedGlass = 'glass1.png';
+        let selectedGlass = 'glass1';
         
-        // Initialize glasses
+        // قمنا بتحسين نظام تحميل الصور هنا
+        const glassImagesMap = {
+            'glass1': 'https://i.ibb.co/0jQ7Yy0/glass1.png',
+            'glass2': 'https://i.ibb.co/4W2yL3k/glass2.png',
+            'glass3': 'https://i.ibb.co/0jQ7Yy0/glass1.png',
+            'glass4': 'https://i.ibb.co/4W2yL3k/glass2.png',
+            'glass5': 'https://i.ibb.co/0jQ7Yy0/glass1.png'
+        };
+        
+        // تهيئة الصورة الأولى
         glassesImage.crossOrigin = "Anonymous";
-        glassesImage.src = `https://i.imgur.com/JqYeZ0L.png`;
+        glassesImage.src = glassImagesMap[selectedGlass];
         
-        // FaceMesh configuration
-        const faceMeshOptions = {
-            maxNumFaces: 1,
-            refineLandmarks: true,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
+        // إضافة رسائل تحميل الصور
+        glassesImage.onload = function() {
+            console.log('تم تحميل صورة النظارات بنجاح');
+        };
+        
+        glassesImage.onerror = function() {
+            console.error('حدث خطأ في تحميل صورة النظارات');
+            // استخدام صورة بديلة في حالة الخطأ
+            glassesImage.src = 'https://i.ibb.co/0jQ7Yy0/glass1.png';
         };
         
         // Event listeners
@@ -283,8 +296,20 @@
                 glassOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 selectedGlass = option.getAttribute('data-glass');
-                // In a real app, you would load the selected glasses image
-                glassesImage.src = `https://i.imgur.com/${selectedGlass.replace('.png', '')}.png`;
+                
+                // تحميل الصورة الجديدة مع التحقق من وجودها
+                const newImage = new Image();
+                newImage.crossOrigin = "Anonymous";
+                newImage.onload = function() {
+                    glassesImage = newImage;
+                    console.log('تم تحميل النظارات الجديدة بنجاح');
+                };
+                newImage.onerror = function() {
+                    console.error('فشل تحميل صورة النظارات المحددة');
+                    // استخدام الصورة الافتراضية في حالة الخطأ
+                    glassesImage.src = glassImagesMap['glass1'];
+                };
+                newImage.src = glassImagesMap[selectedGlass] || glassImagesMap['glass1'];
             });
         });
         
@@ -292,14 +317,20 @@
         async function startCamera() {
             try {
                 startButton.disabled = true;
-                startButton.innerHTML = '<div class="loading-spinner"></div> Starting...';
+                startButton.innerHTML = '<div class="loading-spinner"></div> جارِ التشغيل...';
                 
                 // Initialize FaceMesh
                 faceMesh = new FaceMesh({locateFile: (file) => {
                     return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
                 }});
                 
-                faceMesh.setOptions(faceMeshOptions);
+                faceMesh.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: true,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                
                 faceMesh.onResults(onFaceMeshResults);
                 
                 // Start camera
@@ -315,17 +346,17 @@
                 
                 // Enable capture button
                 captureButton.disabled = false;
-                startButton.innerHTML = 'Camera Started';
+                startButton.innerHTML = 'الكاميرا تعمل';
                 
                 // Set canvas dimensions
                 canvasElement.width = videoElement.videoWidth;
                 canvasElement.height = videoElement.videoHeight;
                 
             } catch (error) {
-                console.error('Error starting camera:', error);
+                console.error('حدث خطأ في تشغيل الكاميرا:', error);
                 startButton.disabled = false;
-                startButton.textContent = 'Start Camera';
-                alert('Failed to start camera. Please ensure you have granted camera permissions.');
+                startButton.textContent = 'تشغيل الكاميرا';
+                alert('فشل تشغيل الكاميرا. يرجى التأكد من منح الإذن لاستخدام الكاميرا.');
             }
         }
         
@@ -347,7 +378,10 @@
         
         // Draw glasses on face
         function drawGlasses(landmarks) {
-            if (!glassesImage.complete) return;
+            if (!glassesImage.complete) {
+                console.log('صورة النظارات غير جاهزة بعد');
+                return;
+            }
             
             const canvasWidth = canvasElement.width;
             const canvasHeight = canvasElement.height;
@@ -403,7 +437,8 @@
             );
             
             const glassesWidth = eyeDistance * 2.2;
-            const glassesHeight = glassesImage.height * (glassesWidth / glassesImage.width);
+            const aspectRatio = glassesImage.height / glassesImage.width;
+            const glassesHeight = glassesWidth * aspectRatio;
             
             const dx = rightEyeCenter.x - leftEyeCenter.x;
             const dy = rightEyeCenter.y - leftEyeCenter.y;
@@ -450,13 +485,13 @@
             
             // Create download link
             const link = document.createElement('a');
-            link.download = 'glasses-try-on.png';
+            link.download = 'نظارات-افتراضية.png';
             link.href = tempCanvas.toDataURL('image/png');
             link.click();
             
             // Show a brief notification
             const originalText = captureButton.textContent;
-            captureButton.textContent = 'Photo Saved!';
+            captureButton.textContent = 'تم حفظ الصورة!';
             setTimeout(() => {
                 captureButton.textContent = originalText;
             }, 2000);
