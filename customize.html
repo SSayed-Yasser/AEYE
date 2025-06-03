@@ -1,347 +1,474 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر النظارات ثلاثية الأبعاد</title>
+    <title>Virtual Glasses Try-On</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-            --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-main);
-            background-color: var(--light-color);
-            color: var(--dark-color);
-            direction: rtl;
-            overflow-x: hidden;
-        }
-
-        header {
-            background-color: var(--dark-color);
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: white;
-            text-decoration: none;
-        }
-
-        .logo span {
-            color: var(--primary-color);
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-        }
-
-        nav li {
-            margin-right: 1.5rem;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: var(--primary-color);
-        }
-
-        .main-container {
-            display: flex;
-            min-height: calc(100vh - 60px);
-        }
-
-        #canvas-container {
-            flex: 1;
-            height: calc(100vh - 60px);
-            background-color: #f5f5f5;
-            position: relative;
-        }
-
-        .loading-indicator {
-            position: absolute;
-            top: 50%;
-            right: 50%;
-            transform: translate(50%, -50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 5px;
-            display: none;
-        }
-
-        .loading-indicator.visible {
-            display: block;
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
         }
         
-        #controls-panel {
-            width: 300px;
-            background-color: white;
-            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            overflow-y: auto;
-            height: calc(100vh - 60px);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: var(--dark);
         }
-
-        .section-title {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: var(--dark-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 0.5rem;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
-
-        .models-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 1.5rem;
-        }
-
-        .model-card {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem 0;
             text-align: center;
-            border: 2px solid transparent;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
         }
-
-        .model-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
         }
-
-        .model-card.selected {
-            border-color: var(--primary-color);
-            background-color: rgba(52, 152, 219, 0.1);
-        }
-
-        .model-card img {
-            width: 100%;
-            height: 80px;
-            object-fit: contain;
-            margin-bottom: 5px;
-        }
-
-        .model-name {
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .color-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 1.5rem;
-        }
-
-        .color-option {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 3px solid #f5f5f5;
-            transition: all 0.3s;
-        }
-
-        .color-option:hover {
-            transform: scale(1.1);
-        }
-
-        .color-option.selected {
-            border-color: var(--dark-color);
-            transform: scale(1.1);
-        }
-
-        .button-group {
+        
+        .app-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 1.5rem;
+            gap: 2rem;
         }
-
+        
+        .camera-section {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+        
+        #webcam {
+            width: 100%;
+            display: block;
+            transform: scaleX(-1);
+        }
+        
+        #outputCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .glass-option {
+            width: 80px;
+            height: 40px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .glass-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .glass-option.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.3);
+        }
+        
+        .glass-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
         button {
-            background-color: var(--primary-color);
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-        }
-
-        button.secondary {
-            background-color: var(--secondary-color);
-        }
-
-        button.secondary:hover {
-            background-color: #1a252f;
-        }
-
-        .checkout-button {
-            background-color: var(--accent-color);
-            margin-top: 20px;
-            padding: 12px;
-            font-size: 1.1rem;
-        }
-
-        .checkout-button:hover {
-            background-color: #c0392b;
-        }
-
-        .view-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 10;
-        }
-
-        .view-controls button {
-            background-color: rgba(44, 62, 80, 0.7);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
+            gap: 0.5rem;
+        }
+        
+        button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: flex;
             justify-content: center;
+            align-items: center;
+            height: 300px;
+            font-size: 1.2rem;
+            color: var(--dark);
         }
-
-        .view-controls button:hover {
-            background-color: rgba(44, 62, 80, 0.9);
+        
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
         }
-
-        /* Responsive adjustments */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: #666;
+        }
+        
         @media (max-width: 768px) {
-            .main-container {
+            .app-container {
                 flex-direction: column;
             }
-
-            #canvas-container {
-                height: 60vh;
-            }
-
-            #controls-panel {
-                width: 100%;
-                height: auto;
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <a href="#" class="logo">نظارات<span>3D</span></a>
-        <nav>
-            <ul>
-                <li><a href="#">الرئيسية</a></li>
-                <li><a href="#">المتجر</a></li>
-                <li><a href="#">حول</a></li>
-                <li><a href="#">اتصل بنا</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <div class="main-container">
-        <div id="canvas-container">
-            <div class="loading-indicator" id="loading-indicator">جاري تحميل النموذج...</div>
-            <div class="view-controls">
-                <button id="reset-view-btn" title="إعادة ضبط العرض">↺</button>
-                <button id="toggle-rotation-btn" title="تشغيل/إيقاف الدوران">⟳</button>
-                <button id="toggle-wireframe-btn" title="عرض/إخفاء الإطار السلكي">⊡</button>
-            </div>
+        <div class="container">
+            <h1>Virtual Glasses Try-On</h1>
+            <p>See how different glasses look on your face in real-time</p>
         </div>
-
-        <div id="controls-panel">
-            <h2 class="section-title">اختر النموذج</h2>
-            <div class="models-grid">
-                <div class="model-card selected" data-model="classic">
-                    <img src="3dmodel/glasses-01/glasses_01.png" alt="نظارة كلاسيكية">
-                    <div class="model-name">كلاسيكية</div>
-                </div>
-                <div class="model-card" data-model="sport">
-                    <img src="3dmodel/glasses-02/glasses_02.png" alt="نظارة رياضية">
-                    <div class="model-name">رياضية</div>
-                </div>
-                <div class="model-card" data-model="vintage">
-                    <img src="3dmodel/glasses-03/glasses_03.png" alt="نظارة فينتاج">
-                    <div class="model-name">فينتاج</div>
-                </div>
-                <div class="model-card" data-model="modern">
-                    <img src="3dmodel/glasses-04/glasses_04.png" alt="نظارة عصرية">
-                    <div class="model-name">عصرية</div>
+    </header>
+    
+    <div class="container">
+        <div class="app-container">
+            <div class="camera-section">
+                <video id="webcam" playsinline></video>
+                <canvas id="outputCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <button id="startButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/>
+                    </svg>
+                    Start Camera
+                </button>
+                
+                <button id="captureButton" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                        <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
+                    </svg>
+                    Capture Photo
+                </button>
+                
+                <div class="glass-options">
+                    <div class="glass-option active" data-glass="glass1.png">
+                        <img src="https://i.imgur.com/JqYeZ0L.png" alt="Classic Black">
+                    </div>
+                    <div class="glass-option" data-glass="glass2.png">
+                        <img src="https://i.imgur.com/8QZQZ0L.png" alt="Round Gold">
+                    </div>
+                    <div class="glass-option" data-glass="glass3.png">
+                        <img src="https://i.imgur.com/9QZQZ0L.png" alt="Aviator">
+                    </div>
+                    <div class="glass-option" data-glass="glass4.png">
+                        <img src="https://i.imgur.com/7QZQZ0L.png" alt="Cat Eye">
+                    </div>
+                    <div class="glass-option" data-glass="glass5.png">
+                        <img src="https://i.imgur.com/6QZQZ0L.png" alt="Square Frame">
+                    </div>
                 </div>
             </div>
-
-            <h2 class="section-title">لون الإطار</h2>
-            <div class="color-options" id="frame-colors">
-                <div class="color-option selected" data-color="#000000" style="background-color: #000000;"></div>
-                <div class="color-option" data-color="#964B00" style="background-color: #964B00;"></div>
-                <div class="color-option" data-color="#FF0000" style="background-color: #FF0000;"></div>
-                <div class="color-option" data-color="#0000FF" style="background-color: #0000FF;"></div>
-                <div class="color-option" data-color="#808080" style="background-color: #808080;"></div>
-                <div class="color-option" data-color="#FFD700" style="background-color: #FFD700;"></div>
-            </div>
-
-            <h2 class="section-title">لون العدسات</h2>
-            <div class="color-options" id="lens-colors">
-                <div class="color-option selected" data-color="#90CDF4" style="background-color: #90CDF4;"></div>
-                <div class="color-option" data-color="#A0AEC0" style="background-color: #A0AEC0;"></div>
-                <div class="color-option" data-color="#68D391" style="background-color: #68D391;"></div>
-                <div class="color-option" data-color="#F6AD55" style="background-color: #F6AD55;"></div>
-                <div class="color-option" data-color="#F687B3" style="background-color: #F687B3;"></div>
-                <div class="color-option" data-color="#FFFFFF" style="background-color: #FFFFFF; border: 1px solid #ccc;"></div>
-            </div>
-
-            <h2 class="section-title">الإضافات</h2>
-            <div class="button-group">
-                <button id="add-to-wishlist-btn">إضافة للمفضلة</button>
-                <button id="share-design-btn">مشاركة التصميم</button>
-                <button id="save-design-btn" class="secondary">حفظ التصميم</button>
-            </div>
-
-            <button id="checkout-btn" class="checkout-button">شراء الآن</button>
         </div>
     </div>
+    
+    <footer>
+        <div class="container">
+            <p>Virtual Glasses Try-On &copy; 2023 | Powered by AEYE FaceMesh</p>
+        </div>
+    </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/loaders/OBJLoader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/loaders/MTLLoader.js"></script>
-
-    <script src="app.js"></script>
-</body>
+    <script>
+        // DOM Elements
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('outputCanvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const captureButton = document.getElementById('captureButton');
+        const glassOptions = document.querySelectorAll('.glass-option');
         
+        // State variables
+        let faceMesh = null;
+        let camera = null;
+        let currentGlasses = null;
+        let glassesImage = new Image();
+        let selectedGlass = 'glass1.png';
+        
+        // Initialize glasses
+        glassesImage.crossOrigin = "Anonymous";
+        glassesImage.src = `https://i.imgur.com/JqYeZ0L.png`;
+        
+        // FaceMesh configuration
+        const faceMeshOptions = {
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        };
+        
+        // Event listeners
+        startButton.addEventListener('click', startCamera);
+        captureButton.addEventListener('click', capturePhoto);
+        
+        glassOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                glassOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                selectedGlass = option.getAttribute('data-glass');
+                // In a real app, you would load the selected glasses image
+                glassesImage.src = `https://i.imgur.com/${selectedGlass.replace('.png', '')}.png`;
+            });
+        });
+        
+        // Start camera function
+        async function startCamera() {
+            try {
+                startButton.disabled = true;
+                startButton.innerHTML = '<div class="loading-spinner"></div> Starting...';
+                
+                // Initialize FaceMesh
+                faceMesh = new FaceMesh({locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                }});
+                
+                faceMesh.setOptions(faceMeshOptions);
+                faceMesh.onResults(onFaceMeshResults);
+                
+                // Start camera
+                camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await faceMesh.send({image: videoElement});
+                    },
+                    width: 1280,
+                    height: 720
+                });
+                
+                await camera.start();
+                
+                // Enable capture button
+                captureButton.disabled = false;
+                startButton.innerHTML = 'Camera Started';
+                
+                // Set canvas dimensions
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                
+            } catch (error) {
+                console.error('Error starting camera:', error);
+                startButton.disabled = false;
+                startButton.textContent = 'Start Camera';
+                alert('Failed to start camera. Please ensure you have granted camera permissions.');
+            }
+        }
+        
+        // FaceMesh results handler
+        function onFaceMeshResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(
+                results.image, 0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                for (const landmarks of results.multiFaceLandmarks) {
+                    drawGlasses(landmarks);
+                }
+            }
+            
+            canvasCtx.restore();
+        }
+        
+        // Draw glasses on face
+        function drawGlasses(landmarks) {
+            if (!glassesImage.complete) return;
+            
+            const canvasWidth = canvasElement.width;
+            const canvasHeight = canvasElement.height;
+            
+            // Key landmarks for glasses positioning
+            const leftEyeOuter = landmarks[33];  // Left eye outer corner
+            const leftEyeInner = landmarks[133]; // Left eye inner corner
+            const rightEyeInner = landmarks[362]; // Right eye inner corner
+            const rightEyeOuter = landmarks[263]; // Right eye outer corner
+            const noseBridge = landmarks[168];    // Nose bridge
+            
+            // Convert normalized coordinates to pixel values
+            const leftEyeOuterPx = {
+                x: leftEyeOuter.x * canvasWidth,
+                y: leftEyeOuter.y * canvasHeight
+            };
+            
+            const leftEyeInnerPx = {
+                x: leftEyeInner.x * canvasWidth,
+                y: leftEyeInner.y * canvasHeight
+            };
+            
+            const rightEyeInnerPx = {
+                x: rightEyeInner.x * canvasWidth,
+                y: rightEyeInner.y * canvasHeight
+            };
+            
+            const rightEyeOuterPx = {
+                x: rightEyeOuter.x * canvasWidth,
+                y: rightEyeOuter.y * canvasHeight
+            };
+            
+            const noseBridgePx = {
+                x: noseBridge.x * canvasWidth,
+                y: noseBridge.y * canvasHeight
+            };
+            
+            // Calculate eye centers
+            const leftEyeCenter = {
+                x: (leftEyeOuterPx.x + leftEyeInnerPx.x) / 2,
+                y: (leftEyeOuterPx.y + leftEyeInnerPx.y) / 2
+            };
+            
+            const rightEyeCenter = {
+                x: (rightEyeOuterPx.x + rightEyeInnerPx.x) / 2,
+                y: (rightEyeOuterPx.y + rightEyeInnerPx.y) / 2
+            };
+            
+            // Calculate eye distance and angle
+            const eyeDistance = Math.sqrt(
+                Math.pow(rightEyeCenter.x - leftEyeCenter.x, 2) + 
+                Math.pow(rightEyeCenter.y - leftEyeCenter.y, 2)
+            );
+            
+            const glassesWidth = eyeDistance * 2.2;
+            const glassesHeight = glassesImage.height * (glassesWidth / glassesImage.width);
+            
+            const dx = rightEyeCenter.x - leftEyeCenter.x;
+            const dy = rightEyeCenter.y - leftEyeCenter.y;
+            const angle = -Math.atan2(dy, dx);
+            
+            // Calculate glasses position
+            const glassesCenterX = (leftEyeCenter.x + rightEyeCenter.x) / 2;
+            const glassesCenterY = noseBridgePx.y - (glassesHeight * 0.05);
+            
+            // Save context and apply transformations
+            canvasCtx.save();
+            canvasCtx.translate(glassesCenterX, glassesCenterY);
+            canvasCtx.rotate(angle);
+            
+            // Draw glasses with alpha transparency
+            canvasCtx.globalAlpha = 0.9;
+            canvasCtx.drawImage(
+                glassesImage,
+                -glassesWidth / 2,
+                -glassesHeight / 2,
+                glassesWidth,
+                glassesHeight
+            );
+            
+            canvasCtx.restore();
+        }
+        
+        // Capture photo function
+        function capturePhoto() {
+            // Create a temporary canvas to draw the final image
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvasElement.width;
+            tempCanvas.height = canvasElement.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Draw the video frame (flipped horizontally)
+            tempCtx.save();
+            tempCtx.scale(-1, 1);
+            tempCtx.drawImage(videoElement, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.restore();
+            
+            // Draw the glasses (already flipped in the output canvas)
+            tempCtx.drawImage(canvasElement, 0, 0);
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = 'glasses-try-on.png';
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+            
+            // Show a brief notification
+            const originalText = captureButton.textContent;
+            captureButton.textContent = 'Photo Saved!';
+            setTimeout(() => {
+                captureButton.textContent = originalText;
+            }, 2000);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (videoElement.videoWidth && videoElement.videoHeight) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+            }
+        });
+    </script>
+</body>
+</html>
