@@ -1,24 +1,24 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تجربة النظارات الافتراضية</title>
+    <title>Virtual Glasses Try-On</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <style>
         :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --accent: #4895ef;
+            --primary: #8B0000; /* Dark red */
+            --secondary: #5E0000;
+            --accent: #A52A2A;
             --light: #f8f9fa;
             --dark: #212529;
         }
         
         body {
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f5f5f5;
@@ -111,7 +111,7 @@
         
         .glass-option.active {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.3);
+            box-shadow: 0 0 0 3px rgba(165, 42, 42, 0.3);
         }
         
         .glass-option img {
@@ -192,8 +192,8 @@
 <body>
     <header>
         <div class="container">
-            <h1>تجربة النظارات الافتراضية</h1>
-            <p>جرب نظارات مختلفة على وجهك في الوقت الحقيقي</p>
+            <h1>Virtual Glasses Try-On</h1>
+            <p>See how different glasses look on your face in real-time</p>
         </div>
     </header>
     
@@ -209,7 +209,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/>
                     </svg>
-                    تشغيل الكاميرا
+                    Start Camera
                 </button>
                 
                 <button id="captureButton" disabled>
@@ -217,24 +217,24 @@
                         <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                         <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
                     </svg>
-                    التقاط صورة
+                    Capture Photo
                 </button>
                 
                 <div class="glass-options">
                     <div class="glass-option active" data-glass="glass1">
-                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="نظارة كلاسيكية سوداء">
+                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="Classic Black">
                     </div>
                     <div class="glass-option" data-glass="glass2">
-                        <img src="https://i.ibb.co/4W2yL3k/glass2.png" alt="نظارة ذهبية مستديرة">
+                        <img src="https://i.ibb.co/4W2yL3k/glass2.png" alt="Round Gold">
                     </div>
                     <div class="glass-option" data-glass="glass3">
-                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="نظارة طيار">
+                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="Aviator">
                     </div>
                     <div class="glass-option" data-glass="glass4">
-                        <img src="https://i.ibb.co/4W2yL3k/glass2.png" alt="نظارة عين القطة">
+                        <img src="https://i.ibb.co/4W2yL3k/glass2.png" alt="Cat Eye">
                     </div>
                     <div class="glass-option" data-glass="glass5">
-                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="نظارة مربعة الإطار">
+                        <img src="https://i.ibb.co/0jQ7Yy0/glass1.png" alt="Square Frame">
                     </div>
                 </div>
             </div>
@@ -243,7 +243,7 @@
     
     <footer>
         <div class="container">
-            <p>تجربة النظارات الافتراضية &copy; 2023 | يعمل بتقنية MediaPipe FaceMesh</p>
+            <p>Virtual Glasses Try-On &copy; 2023 | Powered by MediaPipe FaceMesh</p>
         </div>
     </footer>
 
@@ -259,12 +259,11 @@
         // State variables
         let faceMesh = null;
         let camera = null;
-        let currentGlasses = null;
         let glassesImage = new Image();
         let selectedGlass = 'glass1';
         
-        // قمنا بتحسين نظام تحميل الصور هنا
-        const glassImagesMap = {
+        // Reliable image sources from ImgBB
+        const glassImages = {
             'glass1': 'https://i.ibb.co/0jQ7Yy0/glass1.png',
             'glass2': 'https://i.ibb.co/4W2yL3k/glass2.png',
             'glass3': 'https://i.ibb.co/0jQ7Yy0/glass1.png',
@@ -272,57 +271,77 @@
             'glass5': 'https://i.ibb.co/0jQ7Yy0/glass1.png'
         };
         
-        // تهيئة الصورة الأولى
-        glassesImage.crossOrigin = "Anonymous";
-        glassesImage.src = glassImagesMap[selectedGlass];
+        // Initialize glasses image with error handling
+        function loadGlassesImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = () => {
+                    console.error("Failed to load glasses image:", src);
+                    // Fallback to default image
+                    const fallback = new Image();
+                    fallback.crossOrigin = "Anonymous";
+                    fallback.src = glassImages['glass1'];
+                    fallback.onload = () => resolve(fallback);
+                    fallback.onerror = () => reject("Could not load any glasses images");
+                };
+                img.src = src;
+            });
+        }
         
-        // إضافة رسائل تحميل الصور
-        glassesImage.onload = function() {
-            console.log('تم تحميل صورة النظارات بنجاح');
-        };
-        
-        glassesImage.onerror = function() {
-            console.error('حدث خطأ في تحميل صورة النظارات');
-            // استخدام صورة بديلة في حالة الخطأ
-            glassesImage.src = 'https://i.ibb.co/0jQ7Yy0/glass1.png';
-        };
+        // Load initial glasses
+        loadGlassesImage(glassImages[selectedGlass])
+            .then(img => {
+                glassesImage = img;
+                console.log("Initial glasses loaded successfully");
+            })
+            .catch(err => {
+                console.error("Error loading initial glasses:", err);
+            });
         
         // Event listeners
         startButton.addEventListener('click', startCamera);
         captureButton.addEventListener('click', capturePhoto);
         
         glassOptions.forEach(option => {
-            option.addEventListener('click', () => {
+            option.addEventListener('click', async () => {
                 glassOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 selectedGlass = option.getAttribute('data-glass');
                 
-                // تحميل الصورة الجديدة مع التحقق من وجودها
-                const newImage = new Image();
-                newImage.crossOrigin = "Anonymous";
-                newImage.onload = function() {
-                    glassesImage = newImage;
-                    console.log('تم تحميل النظارات الجديدة بنجاح');
-                };
-                newImage.onerror = function() {
-                    console.error('فشل تحميل صورة النظارات المحددة');
-                    // استخدام الصورة الافتراضية في حالة الخطأ
-                    glassesImage.src = glassImagesMap['glass1'];
-                };
-                newImage.src = glassImagesMap[selectedGlass] || glassImagesMap['glass1'];
+                try {
+                    const newImg = await loadGlassesImage(glassImages[selectedGlass]);
+                    glassesImage = newImg;
+                    console.log("Switched to new glasses:", selectedGlass);
+                } catch (error) {
+                    console.error("Error switching glasses:", error);
+                }
             });
         });
         
-        // Start camera function
+        // Improved camera startup with better error handling
         async function startCamera() {
             try {
                 startButton.disabled = true;
-                startButton.innerHTML = '<div class="loading-spinner"></div> جارِ التشغيل...';
+                startButton.innerHTML = '<div class="loading-spinner"></div> Starting...';
                 
-                // Initialize FaceMesh
-                faceMesh = new FaceMesh({locateFile: (file) => {
-                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-                }});
+                // Check camera permissions first
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user' 
+                    },
+                    audio: false 
+                });
+                
+                // Initialize FaceMesh after camera access is confirmed
+                faceMesh = new FaceMesh({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                    }
+                });
                 
                 faceMesh.setOptions({
                     maxNumFaces: 1,
@@ -333,30 +352,47 @@
                 
                 faceMesh.onResults(onFaceMeshResults);
                 
-                // Start camera
-                camera = new Camera(videoElement, {
-                    onFrame: async () => {
-                        await faceMesh.send({image: videoElement});
-                    },
-                    width: 1280,
-                    height: 720
+                // Set up video element
+                videoElement.srcObject = stream;
+                await new Promise((resolve) => {
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play();
+                        resolve();
+                    };
                 });
-                
-                await camera.start();
-                
-                // Enable capture button
-                captureButton.disabled = false;
-                startButton.innerHTML = 'الكاميرا تعمل';
                 
                 // Set canvas dimensions
                 canvasElement.width = videoElement.videoWidth;
                 canvasElement.height = videoElement.videoHeight;
                 
+                // Start processing frames
+                const processFrame = async () => {
+                    if (!faceMesh) return;
+                    
+                    try {
+                        await faceMesh.send({image: videoElement});
+                        requestAnimationFrame(processFrame);
+                    } catch (error) {
+                        console.error("Error processing frame:", error);
+                    }
+                };
+                
+                processFrame();
+                
+                // Enable capture button
+                captureButton.disabled = false;
+                startButton.innerHTML = 'Camera Running';
+                
             } catch (error) {
-                console.error('حدث خطأ في تشغيل الكاميرا:', error);
+                console.error("Camera initialization failed:", error);
                 startButton.disabled = false;
-                startButton.textContent = 'تشغيل الكاميرا';
-                alert('فشل تشغيل الكاميرا. يرجى التأكد من منح الإذن لاستخدام الكاميرا.');
+                startButton.innerHTML = 'Start Camera';
+                
+                if (error.name === 'NotAllowedError') {
+                    alert('Please allow camera access to use this feature.');
+                } else {
+                    alert('Failed to start camera. Please try again.');
+                }
             }
         }
         
@@ -378,10 +414,7 @@
         
         // Draw glasses on face
         function drawGlasses(landmarks) {
-            if (!glassesImage.complete) {
-                console.log('صورة النظارات غير جاهزة بعد');
-                return;
-            }
+            if (!glassesImage.complete) return;
             
             const canvasWidth = canvasElement.width;
             const canvasHeight = canvasElement.height;
@@ -485,13 +518,13 @@
             
             // Create download link
             const link = document.createElement('a');
-            link.download = 'نظارات-افتراضية.png';
+            link.download = 'virtual-glasses.png';
             link.href = tempCanvas.toDataURL('image/png');
             link.click();
             
             // Show a brief notification
             const originalText = captureButton.textContent;
-            captureButton.textContent = 'تم حفظ الصورة!';
+            captureButton.textContent = 'Photo Saved!';
             setTimeout(() => {
                 captureButton.textContent = originalText;
             }, 2000);
