@@ -220,20 +220,20 @@
                 </button>
                 
                 <div class="glass-options">
-                    <div class="glass-option active" data-glass="classic-black.png">
-                        <img src="https://i.ibb.co/0jQ8Q0Z/glasses1.png" alt="Classic Black">
+                    <div class="glass-option active" data-glass="glass1.png">
+                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Classic Black">
                     </div>
-                    <div class="glass-option" data-glass="round-gold.png">
-                        <img src="https://i.ibb.co/0jQ8Q0Z/glasses1.png" alt="Round Gold">
+                    <div class="glass-option" data-glass="glass2.png">
+                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Round Gold">
                     </div>
-                    <div class="glass-option" data-glass="aviator.png">
-                        <img src="https://i.ibb.co/0jQ8Q0Z/glasses1.png" alt="Aviator">
+                    <div class="glass-option" data-glass="glass3.png">
+                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Aviator">
                     </div>
-                    <div class="glass-option" data-glass="cat-eye.png">
-                        <img src="https://i.ibb.co/0jQ8Q0Z/glasses1.png" alt="Cat Eye">
+                    <div class="glass-option" data-glass="glass4.png">
+                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Cat Eye">
                     </div>
-                    <div class="glass-option" data-glass="square-frame.png">
-                        <img src="https://i.ibb.co/0jQ8Q0Z/glasses1.png" alt="Square Frame">
+                    <div class="glass-option" data-glass="glass5.png">
+                        <img src="./image/prodcts/men/men-round-eyeglasses-1.jpg" alt="Square Frame">
                     </div>
                 </div>
             </div>
@@ -260,11 +260,11 @@
         let camera = null;
         let currentGlasses = null;
         let glassesImage = new Image();
-        let selectedGlass = 'classic-black.png';
+        let selectedGlass = 'glass1.png';
         
         // Initialize glasses
         glassesImage.crossOrigin = "Anonymous";
-        glassesImage.src = 'https://i.ibb.co/0jQ8Q0Z/glasses1.png';
+        glassesImage.src = `./image/prodcts/men/men-round-eyeglasses-1.jpg`;
         
         // FaceMesh configuration
         const faceMeshOptions = {
@@ -283,11 +283,8 @@
                 glassOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 selectedGlass = option.getAttribute('data-glass');
-                
-                // Load the selected glasses image
-                // Note: In a real app, you would have different images for each type
-                // For this example, we're using the same image for all types
-                glassesImage.src = 'https://i.ibb.co/0jQ8Q0Z/glasses1.png';
+                // In a real app, you would load the selected glasses image
+                glassesImage.src = `./image/prodcts/men/men-round-eyeglasses-1.jpg`;
             });
         });
         
