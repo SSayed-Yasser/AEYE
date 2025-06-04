@@ -2,7 +2,7 @@
 const translations = {
   'en': {
       'header.new': 'New',
-      'header.customize': 'Customize',
+      'header.customize': 'Try On',
       'header.eyeglass': 'EyeGlass',
       'header.sunglass': 'SunGlass',
       'header.settings': 'Settings',
